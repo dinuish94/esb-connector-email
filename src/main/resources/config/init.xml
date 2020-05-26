@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+
+   WSO2 Inc. licenses this file to you under the Apache License,
+   Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied. See the License for the
+   specific language governing permissions and limitations
+   under the License.
+-->
+<template name="init" onError="fault" xmlns="http://ws.apache.org/ns/synapse">
+	<parameter name="host" />
+	<parameter name="port" />
+	<parameter name="name" />
+	<parameter name="username" />
+	<parameter name="password" />
+	<parameter name="protocol" />
+	<parameter name="readTimeout" />
+	<parameter name="connectionTimeout" />
+	<parameter name="writeTimeout" />
+	<parameter name="requireTLS" />
+	<parameter name="checkServerIdentity" />
+	<parameter name="trustedHosts" />
+	<parameter name="sslProtocols" />
+	<parameter name="cipherSuites" />
+	<parameter name="maxActiveConnections" />
+	<parameter name="maxIdleConnections" />
+	<parameter name="maxWaitTime" />
+	<parameter name="minEvictionTime" />
+	<parameter name="evictionCheckInterval" />
+	<parameter name="exhaustedAction" />
+	<parameter name="initialisationPolicy" />
+	<parameter name="disablePooling" />
+	<sequence>
+		<log level="full">
+			<property name="*******template_param********" expression="$func:name" />
+		</log>
+		<property name="host" expression="$func:host"/>
+		<property name="port" expression="$func:port"/>
+		<property name="name" expression="$func:name"/>
+		<property name="username" expression="$func:username"/>
+		<property name="password" expression="$func:password"/>
+		<property name="protocol" expression="$func:protocol"/>
+		<property name="readTimeout" expression="$func:readTimeout"/>
+		<property name="connectionTimeout" expression="$func:connectionTimeout"/>
+		<property name="writeTimeout" expression="$func:writeTimeout"/>
+		<property name="requireTLS" expression="$func:requireTLS"/>
+		<property name="checkServerIdentity" expression="$func:checkServerIdentity"/>
+		<property name="trustedHosts" expression="$func:trustedHosts"/>
+		<property name="sslProtocols" expression="$func:sslProtocols"/>
+		<property name="cipherSuites" expression="$func:cipherSuites"/>
+		<property name="maxActiveConnections" expression="$func:maxActiveConnections"/>
+		<property name="maxIdleConnections" expression="$func:maxIdleConnections"/>
+		<property name="maxWaitTime" expression="$func:maxWaitTime"/>
+		<property name="minEvictionTime" expression="$func:minEvictionTime"/>
+		<property name="evictionCheckInterval" expression="$func:evictionCheckInterval"/>
+		<property name="exhaustedAction" expression="$func:exhaustedAction"/>
+		<property name="initialisationPolicy" expression="$func:initialisationPolicy"/>
+		<property name="disablePooling" expression="$func:disablePooling"/>
+		<class name="org.wso2.carbon.connector.operations.EmailConfig" />
+	</sequence>
+</template>

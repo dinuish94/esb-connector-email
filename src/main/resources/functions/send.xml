@@ -1,0 +1,51 @@
+<!--
+   Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+
+   WSO2 Inc. licenses this file to you under the Apache License,
+   Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied. See the License for the
+   specific language governing permissions and limitations
+   under the License.
+-->
+<template xmlns="http://ws.apache.org/ns/synapse" name="send">
+    <parameter name="from" description=""/>
+    <parameter name="to" description=""/>
+    <parameter name="cc" description=""/>
+    <parameter name="bcc" description=""/>
+    <parameter name="replyTo" description=""/>
+    <parameter name="subject" description=""/>
+    <parameter name="headers" description=""/>
+    <parameter name="content" description=""/>
+    <parameter name="contentType" description=""/>
+    <parameter name="encoding" description=""/>
+    <parameter name="attachments" description=""/>
+    <parameter name="contentTransferEncoding" description=""/>
+    <parameter name="reconnectFrequency" description=""/>
+    <parameter name="reconnectCount" description=""/>
+    <parameter name="blocking" description=""/>
+    <parameter name="connection"/>
+    <sequence>
+        <property name="from" expression="$func:from"/>
+        <property name="to" expression="$func:to"/>
+        <property name="cc" expression="$func:cc"/>
+        <property name="bcc" expression="$func:bcc"/>
+        <property name="replyTo" expression="$func:replyTo"/>
+        <property name="subject" expression="$func:subject"/>
+        <property name="headers" expression="$func:headers"/>
+        <property name="content" expression="$func:content"/>
+        <property name="contentType" expression="$func:contentType"/>
+        <property name="encoding" expression="$func:encoding"/>
+        <property name="attachments" expression="$func:attachments"/>
+        <property name="contentTransferEncoding" expression="$func:contentTransferEncoding"/>
+        <property name="connection" expression="$func:connection"/>
+        <class name="org.wso2.carbon.connector.operations.EmailSend" />
+    </sequence>
+</template>
