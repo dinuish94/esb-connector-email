@@ -68,13 +68,6 @@ public class EmailConstants {
     //Java Mail API Constants
     public static final String CONTENT_TRANSFER_ENCODING_HEADER ="Content-Transfer-Encoding";
 
-    public static final String PROTOCOL_SMTP = "smtp";
-    public static final String PROTOCOL_IMAPS = "imaps";
-
-    // Response constants
-    public static final String START_TAG = "<result><success>";
-    public static final String END_TAG = "</success></result>";
-
     // Default configuration values
     public static final String DEFAULT_CONTENT_TYPE = "text/html";
     public static final String DEFAULT_SOCKETFACTORY_CLASS = "javax.net.ssl.SSLSocketFactory";

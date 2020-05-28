@@ -27,8 +27,10 @@ import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.EmailUtils;
+import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import javax.mail.Flags;
+import javax.xml.stream.XMLStreamException;
 
 import static java.lang.String.format;
 
@@ -45,8 +47,10 @@ public class EmailMarkAsDeleted extends AbstractConnector {
         try {
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
-            EmailUtils.changeEmailState(connection, folder, emailID, new Flags(Flags.Flag.DELETED), false);
-        } catch (EmailConnectionException | EmailConnectionPoolException e) {
+            boolean status = EmailUtils.changeEmailState(connection, folder, emailID, new Flags(Flags.Flag.DELETED),
+                    false);
+            ResponseGenerator.generateOutput(messageContext, status);
+        } catch (EmailConnectionException | EmailConnectionPoolException | XMLStreamException e) {
             handleException(format("Error occurred while marking email with ID: %s as deleted. %s", emailID,
                     e.getMessage()), e, messageContext);
         } finally {

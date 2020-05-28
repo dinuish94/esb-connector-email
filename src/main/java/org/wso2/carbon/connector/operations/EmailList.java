@@ -31,6 +31,7 @@ import org.wso2.carbon.connector.pojo.MailboxConfiguration;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailPropertyNames;
 import org.wso2.carbon.connector.utils.EmailUtils;
+import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -53,11 +54,15 @@ import javax.mail.search.SubjectTerm;
 import static java.lang.String.format;
 import static java.util.Date.from;
 
+/**
+ * Lists emails
+ */
 public class EmailList extends AbstractConnector {
 
     @Override
     public void connect(MessageContext messageContext) {
 
+        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
         String connectionName = ConfigurationUtils.getConnectionName(messageContext);
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
@@ -75,6 +80,12 @@ public class EmailList extends AbstractConnector {
         }
     }
 
+    /**
+     * Retrieve messages that matches given filtering criteria
+     *
+     * @param connection     Mailbox connection to be used
+     * @param messageContext Message Context
+     */
     private void retrieveMessages(MailBoxConnection connection, MessageContext messageContext) {
 
         MailboxConfiguration mailboxConfiguration = ConfigurationUtils.getMailboxConfigFromContext(messageContext);
@@ -96,6 +107,7 @@ public class EmailList extends AbstractConnector {
                     mailboxConfiguration.getLimit()));
 
             messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAILS, messageList);
+            ResponseGenerator.setEmailListResponse(messageList, messageContext);
 
             connection.closeFolder(false);
         } catch (EmailParsingException | MessagingException e) {
@@ -104,6 +116,14 @@ public class EmailList extends AbstractConnector {
         }
     }
 
+    /**
+     * Retrieve paginated messages
+     *
+     * @param messages Messages to filter
+     * @param offset   Record index to start filtering from
+     * @param limit    Number of emails to be retrieved
+     * @return List of paginated messages
+     */
     private List<Message> getPaginatedMessages(Message[] messages, int offset, int limit) {
 
         List<Message> messageList = Arrays.asList(messages);
@@ -117,6 +137,13 @@ public class EmailList extends AbstractConnector {
         return messageList;
     }
 
+    /**
+     * Build search term
+     *
+     * @param mailboxConfiguration Configured parameters containing the filters
+     * @return {@link SearchTerm} containing all the filters
+     * @throws AddressException if failed to parse email address
+     */
     private SearchTerm getSearchTerm(MailboxConfiguration mailboxConfiguration) throws AddressException {
 
         FlagTerm seenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), mailboxConfiguration.getSeen());

@@ -17,6 +17,10 @@
  */
 package org.wso2.carbon.connector.exception;
 
+/**
+ * Exception thrown when an error occurs connecting to the email server
+ * or while performing an operation using the email connection
+ */
 public class EmailConnectionException extends Exception {
 
     public EmailConnectionException(String message) {

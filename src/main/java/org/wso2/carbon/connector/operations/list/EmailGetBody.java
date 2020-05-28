@@ -34,8 +34,9 @@ public class EmailGetBody extends AbstractConnector {
 
         if (emailIndex != null && emailMessages != null) {
             EmailMessage emailMessage = emailMessages.get(Integer.parseInt(emailIndex));
-            messageContext.setProperty("HTML_CONTENT", emailMessage.getHtmlContent());
-            messageContext.setProperty("TEXT_CONTENT", emailMessage.getTextContent());
+            messageContext.setProperty(EmailPropertyNames.PROPERTY_HTML_CONTENT, emailMessage.getHtmlContent());
+            messageContext.setProperty(EmailPropertyNames.PROPERTY_TEXT_CONTENT, emailMessage.getTextContent());
+            messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_ID, emailMessage.getEmailId());
         }
     }
 }

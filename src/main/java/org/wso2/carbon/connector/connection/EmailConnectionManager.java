@@ -63,18 +63,15 @@ public class EmailConnectionManager {
         String connectionName = connectionConfiguration.getConnectionName();
         if (connectionConfiguration.getProtocol().getName().equalsIgnoreCase(EmailProtocol.SMTP.name())
                 && connectionMap.get(connectionName) == null){
-            System.out.println("Creating new Connection " + connectionConfiguration.getConnectionName());
             EmailConnection connection = new EmailConnection(connectionConfiguration);
             addConnection(connectionConfiguration.getConnectionName(), connection);
         } else if (!connectionConfiguration.getProtocol().getName().equalsIgnoreCase(EmailProtocol.SMTP.name())
                 && connectionPoolMap.get(connectionName) == null) {
-            System.out.println("Creating new Connection Pool" + connectionConfiguration.getConnectionName());
             EmailConnectionPool pool = new EmailConnectionPool(new EmailConnectionFactory(connectionConfiguration),
                     connectionConfiguration);
             addConnectionPool(connectionConfiguration.getConnectionName(), pool);
-        } else {
-            System.out.println("Connection exists");
         }
+        //TODO: Add logs
     }
 
     public void clearConnectionPools(){

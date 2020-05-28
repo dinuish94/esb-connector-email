@@ -18,6 +18,8 @@
 package org.wso2.carbon.connector.utils;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,6 +33,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 public class MessageBuilder {
+
+    private static Log log = LogFactory.getLog(MessageBuilder.class);
 
     private final MimeMessage message;
 
@@ -60,7 +64,7 @@ public class MessageBuilder {
      *
      * @param subject the subject of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set subject
      */
     public MessageBuilder withSubject(String subject) throws MessagingException {
 
@@ -83,7 +87,7 @@ public class MessageBuilder {
      *
      * @param fromAddresses the from addresses of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set 'from' address
      */
     public MessageBuilder fromAddresses(String fromAddresses) throws MessagingException {
 
@@ -97,7 +101,7 @@ public class MessageBuilder {
      *
      * @param from the from address of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set single address
      */
     public MessageBuilder fromSingleAddresses(String from) throws MessagingException {
 
@@ -114,7 +118,7 @@ public class MessageBuilder {
      *
      * @param toAddresses the primary addresses of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set 'to' recipient
      */
     public MessageBuilder to(String toAddresses) throws MessagingException {
 
@@ -127,7 +131,7 @@ public class MessageBuilder {
      *
      * @param ccAddresses the carbon copy addresses of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set 'cc' recipients
      */
     public MessageBuilder cc(String ccAddresses) throws MessagingException {
 
@@ -140,9 +144,9 @@ public class MessageBuilder {
      *
      * @param bccAddresses the blind carbon copy addresses of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set 'bcc' recipients
      */
-    public MessageBuilder bcc(String bccAddresses){
+    public MessageBuilder bcc(String bccAddresses) throws MessagingException {
 
         this.setRecipient(bccAddresses, this.message, Message.RecipientType.BCC);
         return this;
@@ -153,7 +157,7 @@ public class MessageBuilder {
      *
      * @param headers the custom headers of the email.
      * @return this {@link MessageBuilder}
-     * @throws MessagingException
+     * @throws MessagingException if failed to set headers
      */
     public MessageBuilder withHeaders(Map<String, String> headers) throws MessagingException {
 
@@ -165,17 +169,13 @@ public class MessageBuilder {
         return this;
     }
 
-    private void setRecipient(String recipient, Message message, Message.RecipientType recipientType) {
+    private void setRecipient(String recipient, Message message, Message.RecipientType recipientType) throws MessagingException {
 
         if (!StringUtils.isEmpty(recipient)) {
-            try {
-                message.setRecipients(
-                        recipientType,
-                        InternetAddress.parse(recipient)
-                );
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
+            message.setRecipients(
+                    recipientType,
+                    InternetAddress.parse(recipient)
+            );
         }
     }
 
@@ -202,6 +202,12 @@ public class MessageBuilder {
         return this;
     }
 
+    /**
+     * Build MIME Message using configured parameters
+     *
+     * @return MIME Message with the configured values
+     * @throws MessagingException if failed to build message
+     */
     public MimeMessage build() throws MessagingException {
 
         MimeBodyPart messageBodyPart = new MimeBodyPart();
@@ -235,7 +241,7 @@ public class MessageBuilder {
             try {
                 attachPart.attachFile(filePath);
             } catch (IOException e) {
-//                log.error("Error occurred while attaching files. " + e.getMessage(), e);
+                log.error("Error occurred while attaching files. " + e.getMessage(), e);
             }
             multipart.addBodyPart(attachPart);
         }

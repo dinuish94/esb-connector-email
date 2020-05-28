@@ -17,11 +17,7 @@
    under the License.
 -->
 <component name="functions" type="synapse/template" >
-    <subComponents> 
-		<component name="sample_template" >
-	    		<file>sample_template.xml</file>
-	    		<description>sample wso2 connector method</description>
-		</component>
+    <subComponents>
 		<component name="list" >
 			<file>list.xml</file>
 			<description>List all the emails.</description>

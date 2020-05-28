@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.connector.exception;
 
+/**
+ * Exception thrown if an error occurs while parsing data from the Email Message
+ */
 public class EmailParsingException extends Exception {
 
     public EmailParsingException(String message, Throwable cause) {

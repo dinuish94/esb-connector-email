@@ -17,12 +17,13 @@
  */
 package org.wso2.carbon.connector.utils;
 
-public class EmailPropertyNames {
-    public static final String PROPERTY_EMAILS = "PROPERTY_EMAILS";
-    public static final String PROPERTY_ATTACHMENT = "ATTACHMENT";
-    public static final String PROPERTY_ATTACHMENT_TYPE = "ATTACHMENT_TYPE";
-    public static final String PROPERTY_ATTACHMENT_NAME = "ATTACHMENT_NAME";
-    public static final String PROPERTY_HTML_CONTENT = "HTML_CONTENT";
-    public static final String PROPERTY_TEXT_CONTENT = "TEXT_CONTENT";
-    public static final String PROPERTY_EMAIL_ID = "EMAIL_ID";
+public final class ContentTypes {
+
+    // Content Types
+    public static final String APPLICATION_XML = "application/xml";
+    public static final String APPLICATION_JSON = "application/json";
+    public static final String TEXT_XML = "text/xml";
+    public static final String TEXT_CSV = "text/csv";
+    public static final String TEXT_PLAIN = "text/plain";
+
 }

@@ -17,10 +17,8 @@
  */
 package org.wso2.carbon.connector.utils;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.wso2.carbon.connector.connection.MailBoxConnection;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailParsingException;
@@ -30,9 +28,7 @@ import org.wso2.carbon.connector.pojo.EmailMessage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.activation.CommandMap;
 import javax.activation.DataSource;
-import javax.activation.MailcapCommandMap;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -49,9 +45,9 @@ public class EmailUtils {
 
     }
 
-    public static void changeEmailState(MailBoxConnection connection, String folder, String emailID, Flags flags,
+    public static boolean changeEmailState(MailBoxConnection connection, String folder, String emailID, Flags flags,
                                         boolean expunge) throws EmailConnectionException {
-
+        boolean success = false;
         if (StringUtils.isEmpty(folder)) {
             folder = EmailConstants.DEFAULT_FOLDER;
         }
@@ -63,21 +59,17 @@ public class EmailUtils {
 
             if (messages.length > 0) {
                 Message message = messages[0];
-                System.out.println("---------------------------------");
-                System.out.println("Email Number " + message.getMessageNumber());
-                System.out.println("Subject: " + message.getSubject());
-                System.out.println("From: " + message.getFrom()[0]);
-                System.out.println("Text: " + message.getContent().toString());
-
                 if (flags != null) {
                     inbox.setFlags(new Message[]{message}, flags, true);
+                    success = true;
                 }
             }
             connection.closeFolder(expunge);
-        } catch (MessagingException | IOException e) {
+        } catch (MessagingException e) {
             throw new EmailConnectionException(format("Error occurred while changing email state. %s ",
                     e.getMessage()), e);
         }
+        return success;
     }
 
     public static List<EmailMessage> getMessagesList(List<Message> messages) throws EmailParsingException {

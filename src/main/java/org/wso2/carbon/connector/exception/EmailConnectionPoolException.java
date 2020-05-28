@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.connector.exception;
 
+/**
+ * Exception thrown when an error occurs related to Email Connection pool
+ */
 public class EmailConnectionPoolException extends Exception {
 
     public EmailConnectionPoolException(String message, Throwable cause) {

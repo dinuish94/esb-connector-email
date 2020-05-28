@@ -19,49 +19,165 @@ package org.wso2.carbon.connector.utils;
 
 import org.apache.axiom.om.OMAbstractFactory;
 import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.OMFactory;
 import org.apache.axiom.om.OMNamespace;
+import org.apache.axiom.om.OMText;
 import org.apache.axiom.om.util.AXIOMUtil;
-import org.apache.axiom.soap.SOAPEnvelope;
 import org.apache.axiom.soap.SOAPFactory;
+import org.apache.axis2.AxisFault;
+import org.apache.axis2.transport.TransportUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.synapse.MessageContext;
 import org.apache.synapse.commons.json.JsonUtil;
+import org.apache.synapse.core.axis2.Axis2MessageContext;
 import org.apache.synapse.transport.passthru.util.RelayConstants;
+import org.apache.synapse.transport.passthru.util.StreamingOnRequestDataSource;
+import org.wso2.carbon.connector.exception.ContentBuilderException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import javax.activation.DataHandler;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
-public class ContentBuilder {
+import static java.lang.String.format;
 
-    public static String buildContent(InputStream inputStream, String contentType) {
+public final class ContentBuilder {
 
-        OMElement element = null;
-        String content = null;
-        SOAPFactory factory = OMAbstractFactory.getSOAP12Factory();
-        SOAPEnvelope env = factory.getDefaultEnvelope();
+    private static final QName TEXT_ELEMENT = new QName("http://ws.apache.org/commons/ns/payload", "text");
+
+    private ContentBuilder() {
+
+    }
+
+    /**
+     * Build content according to the content type and set in the message body
+     *
+     * @param messageContext Current message content
+     * @param inputStream    Content to be built as an input stream
+     * @param contentType    Content Type of the content
+     * @throws ContentBuilderException if failed to build the content
+     */
+    public static void buildContent(MessageContext messageContext, InputStream inputStream, String contentType)
+            throws ContentBuilderException {
+
+        org.apache.axis2.context.MessageContext axis2MessageContext = ((Axis2MessageContext) messageContext)
+                .getAxis2MessageContext();
         try {
-            if (contentType.equalsIgnoreCase("text/plain")
-                    || contentType.equalsIgnoreCase("text/csv")) {
-                content = IOUtils.toString(inputStream);
-                content = "<text>" + content + "</text>";
-//                element = AXIOMUtil.stringToOM(content);
-            } else if (contentType.equalsIgnoreCase("application/json")) {
-                element = JsonUtil.toXml(inputStream, false);
-            } else if (contentType.equalsIgnoreCase("application/xml")
-                    || contentType.equalsIgnoreCase("text/xml")) {
-//                element = AXIOMUtil.stringToOM(IOUtils.toString(inputStream));
-                content = IOUtils.toString(inputStream);
+            if (contentType.equalsIgnoreCase(ContentTypes.TEXT_XML)
+                    || contentType.equalsIgnoreCase(ContentTypes.APPLICATION_XML)) {
+                setXMLContent(inputStream, axis2MessageContext);
+            } else if (contentType.equalsIgnoreCase(ContentTypes.APPLICATION_JSON)) {
+                setJSONPayload(inputStream, axis2MessageContext);
+            } else if (contentType.equalsIgnoreCase(ContentTypes.TEXT_PLAIN)
+                    || contentType.equalsIgnoreCase(ContentTypes.TEXT_CSV)) {
+                setTextContent(inputStream, axis2MessageContext);
             } else {
-                OMNamespace ns = factory.createOMNamespace(
-                        RelayConstants.BINARY_CONTENT_QNAME.getNamespaceURI(), "ns");
-                element = factory.createOMElement(
-                        RelayConstants.BINARY_CONTENT_QNAME.getLocalPart(), ns);
+                setBinaryContent(inputStream, axis2MessageContext);
             }
-        } catch (IOException e) {
-            System.out.println(e);
+        } catch (AxisFault e){
+            throw new ContentBuilderException(format("Failed to build content. %s", e.getMessage()), e);
         }
-//        env.getBody().addChild(element);
-        return content;
+    }
+
+    /**
+     * Builds and sets Binary content
+     *
+     * @param inputStream         Content as an input stream
+     * @param axis2MessageContext Axis2 Message Context
+     */
+    private static void setBinaryContent(InputStream inputStream,
+                                         org.apache.axis2.context.MessageContext axis2MessageContext) throws AxisFault {
+
+        SOAPFactory factory = OMAbstractFactory.getSOAP12Factory();
+        OMNamespace ns = factory.createOMNamespace(
+                RelayConstants.BINARY_CONTENT_QNAME.getNamespaceURI(), "ns");
+        OMElement element = factory.createOMElement(
+                RelayConstants.BINARY_CONTENT_QNAME.getLocalPart(), ns);
+
+        StreamingOnRequestDataSource ds = new StreamingOnRequestDataSource(inputStream);
+        DataHandler dataHandler = new DataHandler(ds);
+
+        //create an OMText node with the above DataHandler and set optimized to true
+        OMText textData = factory.createOMText(dataHandler, true);
+        element.addChild(textData);
+        axis2MessageContext.setEnvelope(TransportUtils.createSOAPEnvelope(element));
+    }
+
+    /**
+     * Builds and sets text content
+     *
+     * @param inputStream         Content as an input stream
+     * @param axis2MessageContext Axis2 Message Context
+     * @throws ContentBuilderException if failed to set text content
+     */
+    private static void setTextContent(InputStream inputStream,
+                                       org.apache.axis2.context.MessageContext axis2MessageContext)
+            throws ContentBuilderException {
+
+        try {
+            String text = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            axis2MessageContext.setEnvelope(TransportUtils.createSOAPEnvelope(getTextElement(text)));
+        } catch (IOException e) {
+            throw new ContentBuilderException(format("Failed to set text content. %s ", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Builds and sets JSON content
+     *
+     * @param inputStream         Content as an input stream
+     * @param axis2MessageContext Axis2 Message Context
+     * @throws ContentBuilderException if failed to set JSON content
+     */
+    private static void setJSONPayload(InputStream inputStream,
+                                       org.apache.axis2.context.MessageContext axis2MessageContext)
+            throws ContentBuilderException {
+
+        try {
+            String text = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            JsonUtil.getNewJsonPayload(axis2MessageContext, text, true, true);
+        } catch (IOException e) {
+            throw new ContentBuilderException(format("Failed to set JSON content. %s ", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Builds and sets XML content
+     *
+     * @param inputStream         Content as an input stream
+     * @param axis2MessageContext Axis2 Message Context
+     * @throws ContentBuilderException if failed to set XML content
+     */
+    private static void setXMLContent(InputStream inputStream,
+                                      org.apache.axis2.context.MessageContext axis2MessageContext)
+            throws ContentBuilderException {
+
+        try {
+            String text = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            OMElement omXML = AXIOMUtil.stringToOM(text);
+            axis2MessageContext.setEnvelope(TransportUtils.createSOAPEnvelope(omXML.getFirstElement()));
+        } catch (IOException | XMLStreamException e) {
+            throw new ContentBuilderException(format("Failed to set XML content. %s ", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Get text element
+     *
+     * @param content Content to be wrapped
+     * @return Text Element
+     */
+    private static OMElement getTextElement(String content) {
+
+        OMFactory factory = OMAbstractFactory.getOMFactory();
+        OMElement textElement = factory.createOMElement(TEXT_ELEMENT);
+        if (content == null) {
+            content = "";
+        }
+        textElement.setText(content);
+        return textElement;
     }
 
 }

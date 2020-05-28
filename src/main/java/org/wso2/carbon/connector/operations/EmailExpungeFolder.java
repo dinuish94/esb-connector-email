@@ -27,11 +27,16 @@ import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
+import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import javax.mail.Folder;
+import javax.xml.stream.XMLStreamException;
 
 import static java.lang.String.format;
 
+/**
+ * Deletes emails marked for deletion
+ */
 public class EmailExpungeFolder extends AbstractConnector {
 
     @Override
@@ -45,7 +50,8 @@ public class EmailExpungeFolder extends AbstractConnector {
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
             expungeFolder(connection, folder);
-        } catch (EmailConnectionException | EmailConnectionPoolException e) {
+            ResponseGenerator.generateOutput(messageContext, true);
+        } catch (EmailConnectionException | EmailConnectionPoolException | XMLStreamException e) {
             handleException(format("Error occurred while expunging folder %s. %s", folder, e.getMessage()), e,
                     messageContext);
         } finally {
@@ -55,6 +61,12 @@ public class EmailExpungeFolder extends AbstractConnector {
         }
     }
 
+    /**
+     * Deletes emails marked for deletion in a particular folder
+     *
+     * @param connection Email Connection to be used
+     * @param folder     Folder to delete messages from
+     */
     private void expungeFolder(MailBoxConnection connection, String folder) {
 
         if (StringUtils.isEmpty(folder)) {

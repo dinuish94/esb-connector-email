@@ -19,6 +19,7 @@ package org.wso2.carbon.connector.operations.list;
 
 import org.apache.synapse.MessageContext;
 import org.wso2.carbon.connector.core.AbstractConnector;
+import org.wso2.carbon.connector.exception.ContentBuilderException;
 import org.wso2.carbon.connector.pojo.Attachment;
 import org.wso2.carbon.connector.pojo.EmailMessage;
 import org.wso2.carbon.connector.utils.ContentBuilder;
@@ -34,14 +35,18 @@ public class EmailGetAttachment extends AbstractConnector {
 
         String emailIndex = (String) getParameter(messageContext, EmailConstants.EMAIL_INDEX);
         String attachmentIndex = (String) getParameter(messageContext, EmailConstants.ATTACHMENT_INDEX);
-        List<EmailMessage> emailMessages = (List<EmailMessage>) messageContext.getProperty(EmailPropertyNames.PROPERTY_EMAILS);
+        List<EmailMessage> emailMessages =  (List<EmailMessage>) messageContext.getProperty(EmailPropertyNames.PROPERTY_EMAILS);
 
         if (emailIndex != null && attachmentIndex != null && emailMessages != null) {
             EmailMessage emailMessage = emailMessages.get(Integer.parseInt(emailIndex));
             Attachment attachment = emailMessage.getAttachments().get(Integer.parseInt(attachmentIndex));
-            messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT, ContentBuilder.buildContent(attachment.getContent(), attachment.getContentType()));
             messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_TYPE, attachment.getContentType());
-            messageContext.setProperty("ATTACHMENT_NAME", attachment.getName());
+            messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_NAME, attachment.getName());
+            try {
+                ContentBuilder.buildContent(messageContext, attachment.getContent(), attachment.getContentType());
+            } catch (ContentBuilderException e) {
+                handleException("Error occurred during setting attachment content.", e, messageContext);
+            }
         }
     }
 }

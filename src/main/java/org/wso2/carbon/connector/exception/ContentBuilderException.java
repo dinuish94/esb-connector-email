@@ -15,14 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.connector.utils;
+package org.wso2.carbon.connector.exception;
 
-public class EmailPropertyNames {
-    public static final String PROPERTY_EMAILS = "PROPERTY_EMAILS";
-    public static final String PROPERTY_ATTACHMENT = "ATTACHMENT";
-    public static final String PROPERTY_ATTACHMENT_TYPE = "ATTACHMENT_TYPE";
-    public static final String PROPERTY_ATTACHMENT_NAME = "ATTACHMENT_NAME";
-    public static final String PROPERTY_HTML_CONTENT = "HTML_CONTENT";
-    public static final String PROPERTY_TEXT_CONTENT = "TEXT_CONTENT";
-    public static final String PROPERTY_EMAIL_ID = "EMAIL_ID";
+/**
+ * Exception thrown when an error occurs during building content for further mediation
+ */
+public class ContentBuilderException extends Exception {
+
+    public ContentBuilderException(String message, Throwable cause) {
+
+        super(message, cause);
+    }
 }

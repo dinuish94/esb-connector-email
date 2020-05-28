@@ -17,30 +17,13 @@
  */
 package org.wso2.carbon.connector.exception;
 
+/**
+ * Exception thrown when necessary parameters are not configured
+ */
 public class InvalidConfigurationException extends Exception {
-
-    public InvalidConfigurationException() {
-
-        super();
-    }
-
-    public InvalidConfigurationException(String message) {
-
-        super(message);
-    }
 
     public InvalidConfigurationException(String message, Throwable cause) {
 
         super(message, cause);
-    }
-
-    public InvalidConfigurationException(Throwable cause) {
-
-        super(cause);
-    }
-
-    protected InvalidConfigurationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

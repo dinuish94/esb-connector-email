@@ -40,9 +40,6 @@
 	<parameter name="initialisationPolicy" />
 	<parameter name="disablePooling" />
 	<sequence>
-		<log level="full">
-			<property name="*******template_param********" expression="$func:name" />
-		</log>
 		<property name="host" expression="$func:host"/>
 		<property name="port" expression="$func:port"/>
 		<property name="name" expression="$func:name"/>

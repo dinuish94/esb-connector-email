@@ -47,9 +47,9 @@ public class EmailSend extends AbstractConnector {
         try {
             EmailConnection connection = EmailConnectionManager.getEmailConnectionManager().getConnection(name);
             boolean resultStatus = sendMessage(messageContext, connection);
-            generateOutput(messageContext, resultStatus);
-        } catch (EmailConnectionException e) {
-            handleException(format("Error occured while connecting. %s", e.getMessage()), e, messageContext);
+            ResponseGenerator.generateOutput(messageContext, resultStatus);
+        } catch (EmailConnectionException | XMLStreamException e) {
+            handleException(format("Error occurred while sending the email. %s", e.getMessage()), e, messageContext);
         }
     }
 
@@ -101,22 +101,5 @@ public class EmailSend extends AbstractConnector {
         }
 
         return isSuccess;
-    }
-
-    /**
-     * Generate the output payload
-     *
-     * @param messageContext The message context that is processed by a handler in the handle method
-     * @param resultStatus   Result of the status
-     */
-    private void generateOutput(MessageContext messageContext, boolean resultStatus) {
-
-        String response = EmailConstants.START_TAG + resultStatus + EmailConstants.END_TAG;
-
-        try {
-            ResponseGenerator.preparePayload(messageContext, response);
-        } catch (XMLStreamException e) {
-            handleException(e.getMessage(), e, messageContext);
-        }
     }
 }
