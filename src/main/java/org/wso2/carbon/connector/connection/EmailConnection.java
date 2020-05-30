@@ -9,9 +9,12 @@ import javax.mail.Session;
 
 import static org.apache.commons.lang.StringUtils.join;
 
+/**
+ * Represents an email connection
+ */
 public class EmailConnection {
 
-    Session session;
+    private Session session;
     private EmailProtocol protocol;
 
     public EmailConnection(ConnectionConfiguration connectionConfiguration) {
@@ -46,9 +49,13 @@ public class EmailConnection {
     }
 
     /**
-     * Creates a new {@link Properties} instance and set all the basic properties required by the specified {@code protocol}.
+     * Sets basic session properties required by the protocol
+     *
+     * @param host Host name of the server
+     * @param port Port to connect to
+     * @return Properties configured
      */
-    public Properties setSessionProperties(String host, String port) {
+    private Properties setSessionProperties(String host, String port) {
 
         Properties props = new Properties();
         props.setProperty(protocol.getPortProperty(), port);
@@ -58,6 +65,12 @@ public class EmailConnection {
         return props;
     }
 
+    /**
+     * Sets secure properties
+     *
+     * @param connectionConfiguration configurations to be set
+     * @return Properties to be configured
+     */
     private Properties setSecureProperties(ConnectionConfiguration connectionConfiguration) {
 
         Properties props = new Properties();
@@ -67,7 +80,7 @@ public class EmailConnection {
         } else {
             props.setProperty(protocol.getSslEnableProperty(), "true");
             props.setProperty(protocol.getSocketFactoryFallbackProperty(), EmailConstants.DEFAULT_SOCKETFACTORY_FALLBACK);
-            props.setProperty(protocol.getSocketFactoryPortProperty(),String.valueOf(connectionConfiguration.getPort()));
+            props.setProperty(protocol.getSocketFactoryPortProperty(), String.valueOf(connectionConfiguration.getPort()));
         }
 
         if (connectionConfiguration.getCipherSuites() != null) {
@@ -85,14 +98,16 @@ public class EmailConnection {
             props.setProperty(protocol.getSslTrustProperty(), join(trustedHosts, " "));
         }
 
-        //TODO: Set default value and fix property name
-        props.setProperty(protocol.getCheckServerIndentityProperty(), Boolean.toString(connectionConfiguration
-                .isCheckServerIdentity()));
+        if (connectionConfiguration.isCheckServerIdentity()) {
+            props.setProperty(protocol.getCheckServerIdentityProperty(), Boolean.toString(connectionConfiguration
+                    .isCheckServerIdentity()));
+        }
 
         return props;
     }
 
-    private Properties setTimeouts(String readTimeout, String writeTimeout, String connectionTimeout){
+    private Properties setTimeouts(String readTimeout, String writeTimeout, String connectionTimeout) {
+
         Properties props = new Properties();
         if (readTimeout != null) {
             props.setProperty(protocol.getReadTimeoutProperty(), readTimeout);

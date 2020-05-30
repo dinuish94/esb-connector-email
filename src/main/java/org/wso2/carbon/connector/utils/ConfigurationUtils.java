@@ -21,12 +21,123 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.synapse.MessageContext;
 import org.wso2.carbon.connector.connection.EmailProtocol;
 import org.wso2.carbon.connector.core.util.ConnectorUtils;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.pojo.ConnectionConfiguration;
 import org.wso2.carbon.connector.pojo.MailboxConfiguration;
 
-public class ConfigurationUtils {
+/**
+ * Utils for reading configurations from operations
+ */
+public final class ConfigurationUtils {
 
-    public static ConnectionConfiguration getConnectionConfigFromContext(MessageContext messageContext) {
+    private ConfigurationUtils() {
+
+    }
+
+    /**
+     * Extracts mailbox connection configurations from operation template
+     *
+     * @param messageContext Message Context from which the parameters should be extracted from
+     * @return Mailbox Configurations set
+     */
+    public static MailboxConfiguration getMailboxConfigFromContext(MessageContext messageContext) {
+
+        String folder = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FOLDER);
+        String deleteAfterRetrieve = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.DELETE_AFTER_RETRIEVE);
+        String seen = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_SEEN);
+        String answered = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_ANSWERED);
+        String recent = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_RECENT);
+        String deleted = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_DELETED);
+        String receivedSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.RECEIVED_SINCE);
+        String receivedUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.RECEIVED_UNTIL);
+        String sentSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SENT_SINCE);
+        String sentUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SENT_UNTIL);
+        String subjectRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SUBJECT_REGEX);
+        String fromRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FROM_REGEX);
+        String offset = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.OFFSET);
+        String limit = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.LIMIT);
+
+        if (StringUtils.isEmpty(folder)) {
+            folder = EmailConstants.DEFAULT_FOLDER;
+        }
+
+        boolean seenFlag = true;
+        if (seen != null) {
+            seenFlag = Boolean.parseBoolean(seen);
+        }
+
+        boolean answeredFlag = true;
+        if (answered != null) {
+            answeredFlag = Boolean.parseBoolean(answered);
+        }
+
+        boolean recentFlag = true;
+        if (recent != null) {
+            recentFlag = Boolean.parseBoolean(recent);
+        }
+
+        boolean deletedFlag = true;
+        if (deleted != null) {
+            deletedFlag = Boolean.parseBoolean(deleted);
+        }
+
+        int offSetValue = EmailConstants.DEFAULT_OFFSET;
+        if (offset != null) {
+            offSetValue = Integer.parseInt(offset);
+        }
+
+        int limitValue = EmailConstants.DEFAULT_LIMIT;
+        if (limit != null) {
+            limitValue = Integer.parseInt(limit);
+        }
+
+        MailboxConfiguration mailboxConfiguration = new MailboxConfiguration();
+        mailboxConfiguration.setFolder(folder);
+        mailboxConfiguration.setDeleteAfterRetrieve(Boolean.parseBoolean(deleteAfterRetrieve));
+        mailboxConfiguration.setSeen(seenFlag);
+        mailboxConfiguration.setAnswered(answeredFlag);
+        mailboxConfiguration.setRecent(recentFlag);
+        mailboxConfiguration.setDeleted(deletedFlag);
+        mailboxConfiguration.setReceivedSince(receivedSince);
+        mailboxConfiguration.setReceivedUntil(receivedUntil);
+        mailboxConfiguration.setSentSince(sentSince);
+        mailboxConfiguration.setSentUntil(sentUntil);
+        mailboxConfiguration.setSubjectRegex(subjectRegex);
+        mailboxConfiguration.setFromRegex(fromRegex);
+        mailboxConfiguration.setOffset(offSetValue);
+        mailboxConfiguration.setLimit(limitValue);
+
+        return mailboxConfiguration;
+    }
+
+    /**
+     * Retrieves connection name from message context if configured as configKey attribute
+     * or from the template parameter
+     *
+     * @param messageContext Message Context from which the parameters should be extracted from
+     * @return connection name
+     */
+    public static String getConnectionName(MessageContext messageContext) throws InvalidConfigurationException {
+        // Retrieve name configured init template if referred to as the configKey attribute
+        String connectionName = (String) messageContext.getProperty(EmailConstants.NAME);
+        if (connectionName == null) {
+            connectionName = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.CONNECTION);
+            if (connectionName == null) {
+                throw new InvalidConfigurationException("Connection name is not set.");
+            }
+        }
+        return connectionName;
+    }
+
+    /**
+     * Extracts connection configuration parameters from operation template
+     *
+     * @param messageContext Message Context from which the parameters should be extracted from
+     * @return Connection Configurations set
+     * @throws InvalidConfigurationException if the configurations contain invalid inputs
+     */
+    public static ConnectionConfiguration getConnectionConfigFromContext(MessageContext messageContext)
+            throws InvalidConfigurationException {
 
         String host = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.HOST);
         String port = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.PORT);
@@ -100,104 +211,12 @@ public class ConfigurationUtils {
         if (exhaustedAction != null) {
             connectionConfiguration.setExhaustedAction(exhaustedAction);
         }
-        if (initialisationPolicy != null){
+        if (initialisationPolicy != null) {
             connectionConfiguration.setInitialisationPolicy(initialisationPolicy);
         }
         connectionConfiguration.setDisablePooling(Boolean.parseBoolean(disablePooling));
 
-//        if (validateRequiredConnectionParams(connectionConfiguration)) {
         return connectionConfiguration;
-//        }
-    }
-
-    private static boolean validateRequiredConnectionParams(ConnectionConfiguration configuration) {
-
-        return (!StringUtils.isEmpty(configuration.getHost()) && !StringUtils.isEmpty(configuration.getPort())
-                && StringUtils.isEmpty(configuration.getUsername())
-                && StringUtils.isEmpty(configuration.getConnectionName())
-                && StringUtils.isEmpty(configuration.getPassword())
-                && configuration.getProtocol() != null);
-    }
-
-    public static MailboxConfiguration getMailboxConfigFromContext(MessageContext messageContext) {
-
-        String folder = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FOLDER);
-        String deleteAfterRetrieve = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.DELETE_AFTER_RETRIEVE);
-        String seen = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_SEEN);
-        String answered = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_ANSWERED);
-        String recent = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_RECENT);
-        String deleted = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_DELETED);
-        String receivedSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.RECEIVED_SINCE);
-        String receivedUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.RECEIVED_UNTIL);
-        String sentSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SENT_SINCE);
-        String sentUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SENT_UNTIL);
-        String subjectRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SUBJECT_REGEX);
-        String fromRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FROM_REGEX);
-        String offset = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.OFFSET);
-        String limit = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.LIMIT);
-
-        if (StringUtils.isEmpty(folder)) {
-            folder = EmailConstants.DEFAULT_FOLDER;
-        }
-
-        boolean seenFlag = true;
-        if (seen != null) {
-            seenFlag = Boolean.parseBoolean(seen);
-        }
-
-        boolean answeredFlag = true;
-        if (answered != null) {
-            answeredFlag = Boolean.parseBoolean(answered);
-        }
-
-        boolean recentFlag = true;
-        if (recent != null) {
-            recentFlag = Boolean.parseBoolean(recent);
-        }
-
-        boolean deletedFlag = true;
-        if (deleted != null) {
-            deletedFlag = Boolean.parseBoolean(deleted);
-        }
-
-        int offSetValue = EmailConstants.DEFAULT_OFFSET;
-        if (offset != null){
-            offSetValue = Integer.parseInt(offset);
-        }
-
-        int limitValue = EmailConstants.DEFAULT_LIMIT;
-        if (limit != null){
-            limitValue = Integer.parseInt(limit);
-        }
-
-        MailboxConfiguration mailboxConfiguration = new MailboxConfiguration();
-        mailboxConfiguration.setFolder(folder);
-        mailboxConfiguration.setDeleteAfterRetrieve(Boolean.parseBoolean(deleteAfterRetrieve));
-        mailboxConfiguration.setSeen(seenFlag);
-        mailboxConfiguration.setAnswered(answeredFlag);
-        mailboxConfiguration.setRecent(recentFlag);
-        mailboxConfiguration.setDeleted(deletedFlag);
-        mailboxConfiguration.setReceivedSince(receivedSince);
-        mailboxConfiguration.setReceivedUntil(receivedUntil);
-        mailboxConfiguration.setSentSince(sentSince);
-        mailboxConfiguration.setSentUntil(sentUntil);
-        mailboxConfiguration.setSubjectRegex(subjectRegex);
-        mailboxConfiguration.setFromRegex(fromRegex);
-        mailboxConfiguration.setOffset(offSetValue);
-        mailboxConfiguration.setLimit(limitValue);
-
-//        if (validateRequiredConnectionParams(connectionConfiguration)) {
-        return mailboxConfiguration;
-//        }
-    }
-
-    public static String getConnectionName(MessageContext messageContext) {
-        // Retrieve name configured init template if referred to as the configKey attribute
-        String connectionName = (String) messageContext.getProperty(EmailConstants.NAME);
-        if (connectionName == null){
-            connectionName = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.CONNECTION);
-        }
-        return connectionName;
     }
 
 }

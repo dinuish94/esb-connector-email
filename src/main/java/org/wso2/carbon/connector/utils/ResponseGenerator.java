@@ -7,6 +7,7 @@ import org.apache.axiom.soap.SOAPBody;
 import org.apache.axiom.soap.SOAPFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.synapse.MessageContext;
+import org.wso2.carbon.connector.exception.ContentBuilderException;
 import org.wso2.carbon.connector.pojo.EmailMessage;
 
 import java.util.Iterator;
@@ -14,6 +15,11 @@ import java.util.List;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
+import static java.lang.String.format;
+
+/**
+ * Generates responses
+ */
 public class ResponseGenerator {
 
     private static final QName EMAILS_ELEMENT = new QName("emails");
@@ -31,12 +37,12 @@ public class ResponseGenerator {
     }
 
     /**
-     * Generate the output payload
+     * Generate the output payload with result status
      *
      * @param messageContext The message context that is processed
      * @param resultStatus   Result of the status
      */
-    public static void generateOutput(MessageContext messageContext, boolean resultStatus) throws XMLStreamException {
+    public static void generateOutput(MessageContext messageContext, boolean resultStatus) throws ContentBuilderException {
 
         String response = START_TAG + resultStatus + END_TAG;
         ResponseGenerator.preparePayload(messageContext, response);
@@ -48,21 +54,25 @@ public class ResponseGenerator {
      * @param messageContext The message context that is processed
      * @param output         Output response
      */
-    public static void preparePayload(MessageContext messageContext, String output) throws XMLStreamException {
+    public static void preparePayload(MessageContext messageContext, String output) throws ContentBuilderException {
 
         OMElement element;
-        if (StringUtils.isNotEmpty(output)) {
-            element = AXIOMUtil.stringToOM(output);
-        } else {
-            element = AXIOMUtil.stringToOM("<result></></result>");
+        try {
+            if (StringUtils.isNotEmpty(output)) {
+                element = AXIOMUtil.stringToOM(output);
+            } else {
+                element = AXIOMUtil.stringToOM("<result></></result>");
+            }
+            SOAPBody soapBody = messageContext.getEnvelope().getBody();
+            for (Iterator itr = soapBody.getChildElements(); itr.hasNext(); ) {
+                OMElement child = (OMElement) itr.next();
+                child.detach();
+            }
+            soapBody.addChild(element);
+            messageContext.setResponse(true);
+        } catch (XMLStreamException e) {
+            throw new ContentBuilderException(format("Failed to set response in payload. %s", e.getMessage()), e);
         }
-        SOAPBody soapBody = messageContext.getEnvelope().getBody();
-        for (Iterator itr = soapBody.getChildElements(); itr.hasNext(); ) {
-            OMElement child = (OMElement) itr.next();
-            child.detach();
-        }
-        soapBody.addChild(element);
-        messageContext.setResponse(true);
     }
 
     /**

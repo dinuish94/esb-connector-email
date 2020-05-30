@@ -32,6 +32,9 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+/**
+ * Builds a new message
+ */
 public class MessageBuilder {
 
     private static Log log = LogFactory.getLog(MessageBuilder.class);
@@ -49,10 +52,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Creates a new {@link MessageBuilder} instance for the specified {@code session}.
+     * Creates a new instance for the specified session.
      *
-     * @param session the {@link Session} for which the message is going to be created
-     * @return a new {@link MessageBuilder} instance.
+     * @param session the session for which the message is going to be created
+     * @return a new instance.
      */
     public static MessageBuilder newMessage(Session session) {
 
@@ -60,10 +63,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds the subject to the {@link Message} that is being built.
+     * Adds the subject to the message that is being built.
      *
      * @param subject the subject of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set subject
      */
     public MessageBuilder withSubject(String subject) throws MessagingException {
@@ -74,6 +77,13 @@ public class MessageBuilder {
         return this;
     }
 
+    /**
+     * Adds the replyTo to the message that is being built.
+     *
+     * @param replyTo the replyTo email address.
+     * @return MessageBuilder instance
+     * @throws MessagingException if failed to add 'replyTo' address
+     */
     public MessageBuilder replyTo(String replyTo) throws MessagingException {
 
         if (!StringUtils.isEmpty(replyTo)) {
@@ -83,10 +93,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds the from addresses to the {@link Message} that is being built.
+     * Adds the from addresses to the messade that is being built.
      *
      * @param fromAddresses the from addresses of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set 'from' address
      */
     public MessageBuilder fromAddresses(String fromAddresses) throws MessagingException {
@@ -97,10 +107,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds a single from address to the {@link Message} that is being built.
+     * Adds a single from address to the message that is being built.
      *
      * @param from the from address of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set single address
      */
     public MessageBuilder fromSingleAddresses(String from) throws MessagingException {
@@ -114,10 +124,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds the "to" (primary) addresses to the {@link Message} that is being built.
+     * Adds the "to" (primary) addresses to the message that is being built.
      *
      * @param toAddresses the primary addresses of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set 'to' recipient
      */
     public MessageBuilder to(String toAddresses) throws MessagingException {
@@ -127,10 +137,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds the "cc" addresses to the {@link Message} that is being built.
+     * Adds the "cc" addresses to the message that is being built.
      *
      * @param ccAddresses the carbon copy addresses of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set 'cc' recipients
      */
     public MessageBuilder cc(String ccAddresses) throws MessagingException {
@@ -140,10 +150,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds the "bcc" addresses to the {@link Message} that is being built.
+     * Adds the "bcc" addresses to the message that is being built.
      *
      * @param bccAddresses the blind carbon copy addresses of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set 'bcc' recipients
      */
     public MessageBuilder bcc(String bccAddresses) throws MessagingException {
@@ -153,10 +163,10 @@ public class MessageBuilder {
     }
 
     /**
-     * Adds custom headers to the {@link Message} that is being built.
+     * Adds custom headers to the message that is being built.
      *
      * @param headers the custom headers of the email.
-     * @return this {@link MessageBuilder}
+     * @return MessageBuilder instance
      * @throws MessagingException if failed to set headers
      */
     public MessageBuilder withHeaders(Map<String, String> headers) throws MessagingException {
@@ -169,6 +179,14 @@ public class MessageBuilder {
         return this;
     }
 
+    /**
+     * Sets the recipient in the message
+     *
+     * @param recipient     email address of the recipient
+     * @param message       message to which the recipient should be added
+     * @param recipientType whether the recipient is 'to', 'cc', 'bcc'
+     * @throws MessagingException
+     */
     private void setRecipient(String recipient, Message message, Message.RecipientType recipientType) throws MessagingException {
 
         if (!StringUtils.isEmpty(recipient)) {
@@ -179,6 +197,15 @@ public class MessageBuilder {
         }
     }
 
+    /**
+     * Sets the email body
+     *
+     * @param content                 email content
+     * @param contentType             content type of the email
+     * @param encoding                encoding to be used
+     * @param contentTransferEncoding content transfer encoding
+     * @return MessageBuilder instance
+     */
     public MessageBuilder withBody(String content, String contentType, String encoding, String contentTransferEncoding) {
 
         this.contentType = StringUtils.isEmpty(contentType) ? EmailConstants.DEFAULT_CONTENT_TYPE : contentType;
@@ -194,6 +221,12 @@ public class MessageBuilder {
         return this;
     }
 
+    /**
+     * Adds attachments to the email
+     *
+     * @param attachments file paths of the attachments to be added to the email
+     * @return MessageBuilder instance
+     */
     public MessageBuilder withAttachments(String attachments) {
 
         if (!StringUtils.isEmpty(attachments)) {

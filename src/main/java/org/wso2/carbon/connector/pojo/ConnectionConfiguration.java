@@ -1,8 +1,29 @@
+/*
+ *  Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.carbon.connector.pojo;
 
 import org.wso2.carbon.connector.connection.EmailProtocol;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.EmailConstants;
 
+/**
+ * Configuration parameters used to establish a connection to the email server
+ */
 public class ConnectionConfiguration {
 
     private String host;
@@ -33,8 +54,10 @@ public class ConnectionConfiguration {
         return host;
     }
 
-    public void setHost(String host) {
-
+    public void setHost(String host) throws InvalidConfigurationException {
+        if (host == null){
+            throw new InvalidConfigurationException("Mandatory parameter 'host' is not set.");
+        }
         this.host = host;
     }
 
@@ -43,8 +66,10 @@ public class ConnectionConfiguration {
         return port;
     }
 
-    public void setPort(String port) {
-
+    public void setPort(String port) throws InvalidConfigurationException {
+        if (port == null){
+            throw new InvalidConfigurationException("Mandatory parameter 'port' is not set.");
+        }
         this.port = port;
     }
 
@@ -53,8 +78,10 @@ public class ConnectionConfiguration {
         return connectionName;
     }
 
-    public void setConnectionName(String connectionName) {
-
+    public void setConnectionName(String connectionName) throws InvalidConfigurationException {
+        if (connectionName == null){
+            throw new InvalidConfigurationException("Mandatory parameter 'connectionName' is not set.");
+        }
         this.connectionName = connectionName;
     }
 
@@ -63,8 +90,11 @@ public class ConnectionConfiguration {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(String username) throws InvalidConfigurationException {
 
+        if (username == null){
+            throw new InvalidConfigurationException("Mandatory parameter 'username' is not set.");
+        }
         this.username = username;
     }
 
@@ -73,8 +103,11 @@ public class ConnectionConfiguration {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(String password) throws InvalidConfigurationException {
 
+        if (password == null){
+            throw new InvalidConfigurationException("Mandatory parameter 'password' is not set.");
+        }
         this.password = password;
     }
 
@@ -83,8 +116,11 @@ public class ConnectionConfiguration {
         return protocol;
     }
 
-    public void setProtocol(EmailProtocol protocol) {
+    public void setProtocol(EmailProtocol protocol) throws InvalidConfigurationException {
 
+        if (protocol == null){
+            throw new InvalidConfigurationException("Mandatory parameter 'protocol' is not set.");
+        }
         this.protocol = protocol;
     }
 

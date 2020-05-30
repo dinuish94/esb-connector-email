@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.connector.utils;
 
+/**
+ * Contains the content types
+ */
 public final class ContentTypes {
 
     // Content Types

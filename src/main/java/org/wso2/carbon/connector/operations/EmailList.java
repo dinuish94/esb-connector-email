@@ -26,6 +26,7 @@ import org.wso2.carbon.connector.core.AbstractConnector;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
 import org.wso2.carbon.connector.exception.EmailParsingException;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.pojo.EmailMessage;
 import org.wso2.carbon.connector.pojo.MailboxConfiguration;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
@@ -63,14 +64,14 @@ public class EmailList extends AbstractConnector {
     public void connect(MessageContext messageContext) {
 
         Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
-        String connectionName = ConfigurationUtils.getConnectionName(messageContext);
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
         try {
+            String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
             retrieveMessages(connection, messageContext);
-        } catch (EmailConnectionException | EmailConnectionPoolException e) {
+        } catch (EmailConnectionException | EmailConnectionPoolException | InvalidConfigurationException e) {
             log.error(e.getMessage());
             handleException(e.getMessage(), e, messageContext);
         } finally {
@@ -100,8 +101,12 @@ public class EmailList extends AbstractConnector {
                 mailbox = connection.getFolder(folderName, Folder.READ_ONLY);
             }
 
+            if (log.isDebugEnabled()){
+                log.debug(format("Retrieving messages from Mail folder %s ...", folderName));
+            }
             Message[] messages = mailbox.search(getSearchTerm(mailboxConfiguration));
 
+            //TODO: Delete after retrieve
             List<EmailMessage> messageList = EmailUtils.getMessagesList(getPaginatedMessages(messages,
                     mailboxConfiguration.getOffset(),
                     mailboxConfiguration.getLimit()));
@@ -131,8 +136,14 @@ public class EmailList extends AbstractConnector {
         if (toIndex > messageList.size()) {
             toIndex = messageList.size();
         }
+        if (log.isDebugEnabled()){
+            log.debug(format("Retrieving messages from index %d to %d ...", offset, toIndex));
+        }
         if (messageList.size() >= offset) {
             messageList = messageList.subList(offset, toIndex);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(format("Retrieved %d messages...", messageList.size()));
         }
         return messageList;
     }

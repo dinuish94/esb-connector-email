@@ -26,4 +26,5 @@ public class ContentBuilderException extends Exception {
 
         super(message, cause);
     }
+
 }

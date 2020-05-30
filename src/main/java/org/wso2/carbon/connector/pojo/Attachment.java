@@ -19,6 +19,9 @@ package org.wso2.carbon.connector.pojo;
 
 import java.io.InputStream;
 
+/**
+ * Represents an attachment in the email
+ */
 public class Attachment {
 
     private String name;

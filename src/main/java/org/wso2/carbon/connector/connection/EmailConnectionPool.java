@@ -25,6 +25,9 @@ import org.wso2.carbon.connector.pojo.ConnectionConfiguration;
 
 import static java.lang.String.format;
 
+/**
+ * Connection Pool Implementation for Email Connections
+ */
 public class EmailConnectionPool extends GenericObjectPool {
 
     private static Log log = LogFactory.getLog(EmailConnectionPool.class);
@@ -49,23 +52,32 @@ public class EmailConnectionPool extends GenericObjectPool {
     }
 
     private byte getExhaustedAction(String exhaustedAction) {
-        byte action = DEFAULT_WHEN_EXHAUSTED_ACTION;
-        if (exhaustedAction.equals("WHEN_EXHAUSTED_FAIL")){
-            action = WHEN_EXHAUSTED_FAIL;
-        } else if (exhaustedAction.equals("WHEN_EXHAUSTED_FAIL")){
-            action = WHEN_EXHAUSTED_BLOCK;
-        } else if (exhaustedAction.equals("WHEN_EXHAUSTED_GROW")){
-            action = WHEN_EXHAUSTED_GROW;
-        } else {
-            log.warn("Unable to find the configured exhausted action. Setting to default.");
+        byte action;
+        switch (exhaustedAction) {
+            case "WHEN_EXHAUSTED_FAIL":
+                action = WHEN_EXHAUSTED_FAIL;
+                break;
+            case "WHEN_EXHAUSTED_BLOCK":
+                action = WHEN_EXHAUSTED_BLOCK;
+                break;
+            case "WHEN_EXHAUSTED_GROW":
+                action = WHEN_EXHAUSTED_GROW;
+                break;
+            default:
+                action = DEFAULT_WHEN_EXHAUSTED_ACTION;
+                log.warn(format("Unable to find the configured exhausted action. Setting to default: %s.", action));
+                break;
         }
         return action;
     }
 
     @Override
-    public Object borrowObject() throws EmailConnectionPoolException {
+    public synchronized Object borrowObject() throws EmailConnectionPoolException {
 
         try {
+            if (log.isDebugEnabled()){
+                log.debug("Borrowing object from the connection pool...");
+            }
             return super.borrowObject();
         } catch (Exception e) {
             throw new EmailConnectionPoolException(format("Error occurred while borrowing connection from the pool. %s",
@@ -74,9 +86,12 @@ public class EmailConnectionPool extends GenericObjectPool {
     }
 
     @Override
-    public void returnObject(Object obj) {
+    public synchronized void returnObject(Object obj) {
 
         try {
+            if (log.isDebugEnabled()){
+                log.debug("Returning object to the connection pool...");
+            }
             super.returnObject(obj);
         } catch (Exception e) {
             log.error(format("Error occurred while returning the connection to the pool. %s", e.getMessage()), e);
@@ -84,7 +99,7 @@ public class EmailConnectionPool extends GenericObjectPool {
     }
 
     @Override
-    public void close() throws EmailConnectionPoolException {
+    public synchronized void close() throws EmailConnectionPoolException {
         try{
             super.close();
         } catch (Exception e){

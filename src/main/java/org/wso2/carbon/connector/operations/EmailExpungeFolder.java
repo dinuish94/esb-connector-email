@@ -23,14 +23,15 @@ import org.wso2.carbon.connector.connection.EmailConnectionManager;
 import org.wso2.carbon.connector.connection.EmailConnectionPool;
 import org.wso2.carbon.connector.connection.MailBoxConnection;
 import org.wso2.carbon.connector.core.AbstractConnector;
+import org.wso2.carbon.connector.exception.ContentBuilderException;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import javax.mail.Folder;
-import javax.xml.stream.XMLStreamException;
 
 import static java.lang.String.format;
 
@@ -43,15 +44,19 @@ public class EmailExpungeFolder extends AbstractConnector {
     public void connect(MessageContext messageContext) {
 
         String folder = (String) getParameter(messageContext, EmailConstants.FOLDER);
-        String connectionName = ConfigurationUtils.getConnectionName(messageContext);
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
         try {
+            String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
             expungeFolder(connection, folder);
+            if (log.isDebugEnabled()) {
+                log.debug(format("Expunged folder: %s...", folder));
+            }
             ResponseGenerator.generateOutput(messageContext, true);
-        } catch (EmailConnectionException | EmailConnectionPoolException | XMLStreamException e) {
+        } catch (EmailConnectionException | EmailConnectionPoolException | ContentBuilderException
+                | InvalidConfigurationException e) {
             handleException(format("Error occurred while expunging folder %s. %s", folder, e.getMessage()), e,
                     messageContext);
         } finally {

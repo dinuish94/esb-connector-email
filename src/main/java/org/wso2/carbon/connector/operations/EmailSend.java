@@ -22,7 +22,9 @@ import org.apache.synapse.MessageContext;
 import org.wso2.carbon.connector.connection.EmailConnection;
 import org.wso2.carbon.connector.connection.EmailConnectionManager;
 import org.wso2.carbon.connector.core.AbstractConnector;
+import org.wso2.carbon.connector.exception.ContentBuilderException;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.MessageBuilder;
@@ -31,24 +33,23 @@ import org.wso2.carbon.connector.utils.ResponseGenerator;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
-import javax.xml.stream.XMLStreamException;
 
 import static java.lang.String.format;
 
 /**
- * Handles email send operation
+ * Sends an email
  */
 public class EmailSend extends AbstractConnector {
 
     @Override
     public void connect(MessageContext messageContext) {
 
-        String name = ConfigurationUtils.getConnectionName(messageContext);
         try {
+            String name = ConfigurationUtils.getConnectionName(messageContext);
             EmailConnection connection = EmailConnectionManager.getEmailConnectionManager().getConnection(name);
             boolean resultStatus = sendMessage(messageContext, connection);
             ResponseGenerator.generateOutput(messageContext, resultStatus);
-        } catch (EmailConnectionException | XMLStreamException e) {
+        } catch (EmailConnectionException | InvalidConfigurationException | ContentBuilderException e) {
             handleException(format("Error occurred while sending the email. %s", e.getMessage()), e, messageContext);
         }
     }
@@ -92,8 +93,9 @@ public class EmailSend extends AbstractConnector {
                         .build();
                 Transport.send(message);
 
-                //TODO: Change to debug
-                log.info("Email was sent successfully.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Email was sent successfully...");
+                }
                 isSuccess = true;
             } catch (MessagingException e) {
                 handleException(format("Error occurred while sending the email. %s ", e.getMessage()), e, messageContext);

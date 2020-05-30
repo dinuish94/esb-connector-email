@@ -1,11 +1,14 @@
 package org.wso2.carbon.connector.connection;
 
-import org.wso2.carbon.connector.utils.EmailConstants;
+import org.wso2.carbon.connector.utils.EmailConfigProperties;
 
 import java.net.Socket;
 
 import static java.lang.String.format;
 
+/**
+ * Contains the Email Protocols and mail configurations
+ */
 public enum EmailProtocol {
 
     /**
@@ -42,11 +45,12 @@ public enum EmailProtocol {
     private final boolean secure;
 
     /**
-     * Creates an instance.
+     * Creates an Email Protocol instance.
      *
      * @param name the name of the protocol.
      */
     EmailProtocol(String name, boolean secure) {
+
         this.name = name;
         this.secure = secure;
     }
@@ -67,7 +71,8 @@ public enum EmailProtocol {
      * @return the protocol host name property.
      */
     public String getHostProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_HOST);
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_HOST);
     }
 
     /**
@@ -76,7 +81,8 @@ public enum EmailProtocol {
      * @return the protocol port property.
      */
     public String getPortProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_PORT);
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_PORT);
     }
 
     /**
@@ -85,16 +91,8 @@ public enum EmailProtocol {
      * @return the protocol mail auth property.
      */
     public String getMailAuthProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_AUTH);
-    }
 
-    /**
-     * Defines the default mime charset to use when none has been specified for the message.
-     *
-     * @return the mime charset property.
-     */
-    public String getMailMimeCharsetProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_CHARSET);
+        return unmaskProperty(EmailConfigProperties.PROPERTY_AUTH);
     }
 
     /**
@@ -103,7 +101,8 @@ public enum EmailProtocol {
      * @return the protocol socket factory fallback property.
      */
     public String getSocketFactoryFallbackProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_SOCKETFACTORY_FALLBACK);
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_SOCKETFACTORY_FALLBACK);
     }
 
     /**
@@ -112,14 +111,8 @@ public enum EmailProtocol {
      * @return the protocol socket factory port property.
      */
     public String getSocketFactoryPortProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_SOCKETFACTORY_PORT);
-    }
 
-    /**
-     * @return the protocol socket factory property.
-     */
-    public String getSocketFactoryProperty() {
-        return unmaskProperty(EmailConstants.PROPERTY_SOCKET_FACTORY);
+        return unmaskProperty(EmailConfigProperties.PROPERTY_SOCKETFACTORY_PORT);
     }
 
     /**
@@ -128,7 +121,8 @@ public enum EmailProtocol {
      * @return the protocol ssl ciphersuites property.
      */
     public String getSslCiphersuitesProperty() {
-        return unmaskProperty("mail.%s.ssl.ciphersuites");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_SSL_CIPHER_SUITES);
     }
 
     /**
@@ -137,7 +131,8 @@ public enum EmailProtocol {
      * @return the protocol ssl enabled protocols property.
      */
     public String getSslProtocolsProperty() {
-        return unmaskProperty("mail.%s.ssl.protocols");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_SSL_PROTOCOLS);
     }
 
     /**
@@ -146,7 +141,8 @@ public enum EmailProtocol {
      * @return the ssl enable property.
      */
     public String getSslEnableProperty() {
-        return unmaskProperty("mail.%s.ssl.enable");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_SSL_ENABLE);
     }
 
     /**
@@ -155,7 +151,8 @@ public enum EmailProtocol {
      * @return the protocol ssl trust property.
      */
     public String getSslTrustProperty() {
-        return unmaskProperty("mail.%s.ssl.trust");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_SSL_TRUST);
     }
 
     /**
@@ -164,7 +161,8 @@ public enum EmailProtocol {
      * @return the protocol start tls property.
      */
     public String getStartTlsProperty() {
-        return unmaskProperty("mail.%s.starttls.enable");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_START_TLS_ENABLE);
     }
 
     /**
@@ -173,7 +171,8 @@ public enum EmailProtocol {
      * @return the protocol name property.
      */
     public String getTransportProtocolProperty() {
-        return "mail.transport.name";
+
+        return EmailConfigProperties.PROPERTY_TRANSPORT_NAME;
     }
 
     /**
@@ -182,7 +181,8 @@ public enum EmailProtocol {
      * @return the protocol read timeout property.
      */
     public String getReadTimeoutProperty() {
-        return unmaskProperty("mail.%s.timeout");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_TIMEOUT);
     }
 
     /**
@@ -191,7 +191,8 @@ public enum EmailProtocol {
      * @return the protocol connection timeout property.
      */
     public String getConnectionTimeoutProperty() {
-        return unmaskProperty("mail.%s.connectiontimeout");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_CONNECTION_TIMEOUT);
     }
 
     /**
@@ -200,7 +201,8 @@ public enum EmailProtocol {
      * @return the protocol write timeout property.
      */
     public String getWriteTimeoutProperty() {
-        return unmaskProperty("mail.%s.writetimeout");
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_WRITE_TIMEOUT);
     }
 
     /**
@@ -208,13 +210,15 @@ public enum EmailProtocol {
      * These additional checks based on the content of the server's certificate are intended to prevent
      * man-in-the-middle attacks. Default is false.
      *
-     * @return
+     * @return the check server Identity property.
      */
-    public String getCheckServerIndentityProperty() {
-        return unmaskProperty("mail.%s.ssl.checkserveridentity");
+    public String getCheckServerIdentityProperty() {
+
+        return unmaskProperty(EmailConfigProperties.PROPERTY_CHECK_SERVER_IDENTITY);
     }
 
     private String unmaskProperty(String property) {
+
         return format(property, name);
     }
 }

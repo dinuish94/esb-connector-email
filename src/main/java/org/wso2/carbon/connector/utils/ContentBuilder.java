@@ -43,6 +43,9 @@ import javax.xml.stream.XMLStreamException;
 
 import static java.lang.String.format;
 
+/**
+ * Utils for building content according to their content type to the format is understandable by the mediation engine
+ */
 public final class ContentBuilder {
 
     private static final QName TEXT_ELEMENT = new QName("http://ws.apache.org/commons/ns/payload", "text");

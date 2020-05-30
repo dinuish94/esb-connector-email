@@ -22,8 +22,11 @@ import org.apache.synapse.MessageContext;
 import org.apache.synapse.core.SynapseEnvironment;
 import org.wso2.carbon.connector.connection.EmailConnectionManager;
 import org.wso2.carbon.connector.core.AbstractConnector;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.pojo.ConnectionConfiguration;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
+
+import static java.lang.String.format;
 
 /**
  * Configures and initializes the email connection
@@ -33,8 +36,12 @@ public class EmailConfig extends AbstractConnector implements ManagedLifecycle {
     @Override
     public void connect(MessageContext messageContext) {
 
-        ConnectionConfiguration configuration = ConfigurationUtils.getConnectionConfigFromContext(messageContext);
-        EmailConnectionManager.getEmailConnectionManager().createConnection(configuration);
+        try {
+            ConnectionConfiguration configuration = ConfigurationUtils.getConnectionConfigFromContext(messageContext);
+            EmailConnectionManager.getEmailConnectionManager().createConnection(configuration);
+        } catch (InvalidConfigurationException e) {
+            handleException(format("Failed to initiate email configuration. %s", e.getMessage()), messageContext);
+        }
     }
 
     @Override

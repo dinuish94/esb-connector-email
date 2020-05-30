@@ -10,6 +10,9 @@ import javax.mail.Store;
 
 import static java.lang.String.format;
 
+/**
+ * Represents a connection to a mailbox
+ */
 public class MailBoxConnection extends EmailConnection {
 
     private static final Logger log = LoggerFactory.getLogger(MailBoxConnection.class);
@@ -21,7 +24,7 @@ public class MailBoxConnection extends EmailConnection {
 
         super(connectionConfiguration);
         try {
-            this.store = session.getStore(connectionConfiguration.getProtocol().getName());
+            this.store = this.getSession().getStore(connectionConfiguration.getProtocol().getName());
             this.store.connect();
         } catch (MessagingException e) {
             log.error(format("Failed to connect to store. %s", e.getMessage()), e);
@@ -29,15 +32,14 @@ public class MailBoxConnection extends EmailConnection {
     }
 
     /**
-     * Opens and return the email {@link Folder} of name {@code mailBoxFolder}. The folder can contain Messages, other Folders or
-     * both.
-     * <p>
-     * If there was an already opened folder and a different one is requested the opened folder will be closed and the new one will
-     * be opened.
+     * Opens and return the email folder.
+     *
+     * If there was an already opened folder and a different one is requested the opened folder will be closed
+     * and the new one will be opened.
      *
      * @param mailBoxFolder the name of the folder to be opened.
      * @param openMode      open the folder in READ_ONLY or READ_WRITE mode
-     * @return the opened {@link Folder}
+     * @return the opened Folder
      */
     public synchronized Folder getFolder(String mailBoxFolder, int openMode) {
 
@@ -53,7 +55,7 @@ public class MailBoxConnection extends EmailConnection {
             folder.open(openMode);
 
         } catch (MessagingException e) {
-            log.error(format("Error while opening folder %s", mailBoxFolder), e);
+            log.error(format("Error while opening folder : %s.", mailBoxFolder), e);
         }
         return folder;
     }
@@ -66,11 +68,15 @@ public class MailBoxConnection extends EmailConnection {
     public synchronized void closeFolder(boolean expunge) {
 
         try {
+            if (log.isDebugEnabled()) {
+                log.debug(format("Closing folder %s ...", this.folder.getFullName()));
+            }
             if (folder != null && folder.isOpen()) {
                 folder.close(expunge);
             }
         } catch (MessagingException e) {
-            log.debug("Exception", e);
+            log.error(format("Error occurred while closing folder: %s. %s", this.folder.getFullName(), e.getMessage())
+                    , e);
         }
     }
 

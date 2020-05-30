@@ -12,6 +12,9 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
+/**
+ * Manages email connections and connection pools
+ */
 public class EmailConnectionManager {
 
     private static Log log = LogFactory.getLog(EmailConnectionManager.class);
@@ -38,6 +41,9 @@ public class EmailConnectionManager {
     }
 
     private void addConnection(String name, EmailConnection emailConnection) {
+        if (log.isDebugEnabled()){
+            log.debug(format("Creating connection : %s", name));
+        }
         connectionMap.putIfAbsent(name, emailConnection);
     }
 
@@ -49,11 +55,17 @@ public class EmailConnectionManager {
     }
 
     private void addConnectionPool(String name, EmailConnectionPool emailConnectionPool) {
-        connectionPoolMap.put(name, emailConnectionPool);
+        if (log.isDebugEnabled()){
+            log.debug(format("Creating connection pool for connection : %s", name));
+        }
+        connectionPoolMap.putIfAbsent(name, emailConnectionPool);
     }
 
     public EmailConnectionPool getConnectionPool(String name) throws EmailConnectionException {
         if (connectionPoolMap.get(name) != null){
+            if (log.isDebugEnabled()){
+                log.debug(format("Returning connection pool for connection: %s", name));
+            }
             return connectionPoolMap.get(name);
         }
         throw new EmailConnectionException(format("Connection with the name %s has not been initialized.", name));
@@ -70,11 +82,17 @@ public class EmailConnectionManager {
             EmailConnectionPool pool = new EmailConnectionPool(new EmailConnectionFactory(connectionConfiguration),
                     connectionConfiguration);
             addConnectionPool(connectionConfiguration.getConnectionName(), pool);
+        } else {
+            if (log.isDebugEnabled()){
+                log.debug(format("Connection %s exists", connectionName));
+            }
         }
-        //TODO: Add logs
     }
 
     public void clearConnectionPools(){
+        if (log.isDebugEnabled()){
+            log.debug("Clearing connection pools...");
+        }
         for (Map.Entry<String, EmailConnectionPool> pool : connectionPoolMap.entrySet()){
             try {
                 pool.getValue().close();

@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.connector.utils;
 
+/**
+ * Property names of the properties set containing email data
+ */
 public class EmailPropertyNames {
     public static final String PROPERTY_EMAILS = "PROPERTY_EMAILS";
     public static final String PROPERTY_ATTACHMENT = "ATTACHMENT";

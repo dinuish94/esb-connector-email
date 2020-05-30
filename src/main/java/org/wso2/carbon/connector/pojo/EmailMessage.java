@@ -19,6 +19,9 @@ package org.wso2.carbon.connector.pojo;
 
 import java.util.List;
 
+/**
+ * Contains the parsed email content
+ */
 public class EmailMessage {
 
     private String emailId;

@@ -22,18 +22,22 @@ import org.wso2.carbon.connector.connection.EmailConnectionManager;
 import org.wso2.carbon.connector.connection.EmailConnectionPool;
 import org.wso2.carbon.connector.connection.MailBoxConnection;
 import org.wso2.carbon.connector.core.AbstractConnector;
+import org.wso2.carbon.connector.exception.ContentBuilderException;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.EmailUtils;
 import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import javax.mail.Flags;
-import javax.xml.stream.XMLStreamException;
 
 import static java.lang.String.format;
 
+/**
+ * Marks an email as read
+ */
 public class EmailMarkAsDeleted extends AbstractConnector {
 
     @Override
@@ -41,16 +45,17 @@ public class EmailMarkAsDeleted extends AbstractConnector {
 
         String folder = (String) getParameter(messageContext, EmailConstants.FOLDER);
         String emailID = (String) getParameter(messageContext, EmailConstants.EMAIL_ID);
-        String connectionName = ConfigurationUtils.getConnectionName(messageContext);
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
         try {
+            String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
             boolean status = EmailUtils.changeEmailState(connection, folder, emailID, new Flags(Flags.Flag.DELETED),
                     false);
             ResponseGenerator.generateOutput(messageContext, status);
-        } catch (EmailConnectionException | EmailConnectionPoolException | XMLStreamException e) {
+        } catch (EmailConnectionException | EmailConnectionPoolException | ContentBuilderException
+                | InvalidConfigurationException e) {
             handleException(format("Error occurred while marking email with ID: %s as deleted. %s", emailID,
                     e.getMessage()), e, messageContext);
         } finally {

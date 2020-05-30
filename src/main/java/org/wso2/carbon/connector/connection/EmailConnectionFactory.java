@@ -20,6 +20,9 @@ package org.wso2.carbon.connector.connection;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.wso2.carbon.connector.pojo.ConnectionConfiguration;
 
+/**
+ * Email Connection Factory
+ */
 public class EmailConnectionFactory implements PoolableObjectFactory {
 
     private ConnectionConfiguration connectionConfiguration;
