@@ -73,8 +73,6 @@ public final class EmailConstants {
     public static final String INITIALISATION_POLICY = "initialisationPolicy";
     public static final String DISABLE_POOLING = "disablePooling";
 
-    //TODO: Add missing constants here
-
     //Java Mail API Constants
     public static final String CONTENT_TRANSFER_ENCODING_HEADER ="Content-Transfer-Encoding";
 

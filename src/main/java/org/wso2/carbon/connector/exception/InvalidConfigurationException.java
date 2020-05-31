@@ -26,9 +26,4 @@ public class InvalidConfigurationException extends Exception {
 
         super(message);
     }
-
-    public InvalidConfigurationException(String message, Throwable cause) {
-
-        super(message, cause);
-    }
 }

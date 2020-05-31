@@ -93,9 +93,7 @@ public class EmailSend extends AbstractConnector {
                         .build();
                 Transport.send(message);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Email was sent successfully...");
-                }
+                log.debug("Email was sent successfully...");
                 isSuccess = true;
             } catch (MessagingException e) {
                 handleException(format("Error occurred while sending the email. %s ", e.getMessage()), e, messageContext);

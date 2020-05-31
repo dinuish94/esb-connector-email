@@ -57,14 +57,4 @@ public class Attachment {
 
         this.content = content;
     }
-
-    @Override
-    public String toString() {
-
-        return "Attachment{" +
-                "name='" + name + '\'' +
-                ", contentType='" + contentType + '\'' +
-                ", content='" + content + '\'' +
-                '}';
-    }
 }

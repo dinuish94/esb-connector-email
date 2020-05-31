@@ -18,6 +18,8 @@
 package org.wso2.carbon.connector.pojo;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import javax.mail.Address;
 
 /**
  * Contains the parsed email content
@@ -25,6 +27,12 @@ import java.util.List;
 public class EmailMessage {
 
     private String emailId;
+    private String subject;
+    private String to;
+    private String from;
+    private String cc;
+    private String bcc;
+    private String replyTo;
     private String htmlContent;
     private String textContent;
     private List<Attachment> attachments;
@@ -69,13 +77,66 @@ public class EmailMessage {
         this.emailId = emailId;
     }
 
-    @Override
-    public String toString() {
+    public String getSubject() {
 
-        return "EmailMessage{" +
-                "htmlContent='" + htmlContent + '\'' +
-                ", textContent='" + textContent + '\'' +
-                ", attachments=" + attachments +
-                '}';
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+
+        this.subject = subject;
+    }
+
+    public String getTo() {
+
+        return to;
+    }
+
+    public void setTo(List<Address> to) {
+        this.to = getAddressListAsString(to);
+    }
+
+    public String getFrom() {
+
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getCc() {
+
+        return cc;
+    }
+
+    public void setCc(List<Address> cc) {
+
+        this.cc = getAddressListAsString(cc);
+    }
+
+    public String getBcc() {
+
+        return bcc;
+    }
+
+    public void setBcc(List<Address> bcc) {
+
+        this.bcc = getAddressListAsString(bcc);
+    }
+
+    public String getReplyTo() {
+
+        return replyTo;
+    }
+
+    public void setReplyTo(String replyTo) {
+
+        this.replyTo = replyTo;
+    }
+
+    private String getAddressListAsString(List<Address> addresses) {
+
+        return String.join(",", addresses.stream().map(Address::toString).collect(Collectors.toList()));
     }
 }

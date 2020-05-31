@@ -18,7 +18,7 @@
 package org.wso2.carbon.connector.utils;
 
 /**
- * Contains the Java Mail API Property Constants
+ * Contains the Java Mail API Properties
  */
 public class EmailConfigProperties {
 

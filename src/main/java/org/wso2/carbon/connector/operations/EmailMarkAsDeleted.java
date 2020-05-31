@@ -28,7 +28,7 @@ import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
 import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
-import org.wso2.carbon.connector.utils.EmailUtils;
+import org.wso2.carbon.connector.utils.EmailOperationUtils;
 import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import javax.mail.Flags;
@@ -51,8 +51,8 @@ public class EmailMarkAsDeleted extends AbstractConnector {
             String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
-            boolean status = EmailUtils.changeEmailState(connection, folder, emailID, new Flags(Flags.Flag.DELETED),
-                    false);
+            boolean status = EmailOperationUtils.changeEmailState(connection, folder, emailID,
+                    new Flags(Flags.Flag.DELETED), false);
             ResponseGenerator.generateOutput(messageContext, status);
         } catch (EmailConnectionException | EmailConnectionPoolException | ContentBuilderException
                 | InvalidConfigurationException e) {

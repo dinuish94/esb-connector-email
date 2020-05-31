@@ -33,6 +33,7 @@ public class EmailConnectionPool extends GenericObjectPool {
     private static Log log = LogFactory.getLog(EmailConnectionPool.class);
 
     EmailConnectionPool(EmailConnectionFactory objFactory, ConnectionConfiguration connectionConfiguration) {
+
         super(objFactory);
         this.setMaxActive(connectionConfiguration.getMaxActiveConnections());
         this.setMaxIdle(connectionConfiguration.getMaxIdleConnections());
@@ -51,7 +52,14 @@ public class EmailConnectionPool extends GenericObjectPool {
         this.setTestOnBorrow(true);
     }
 
+    /**
+     * Parse exhausted action from string
+     *
+     * @param exhaustedAction exhausted action in string
+     * @return respective byte that represents the action
+     */
     private byte getExhaustedAction(String exhaustedAction) {
+
         byte action;
         switch (exhaustedAction) {
             case "WHEN_EXHAUSTED_FAIL":
@@ -75,9 +83,7 @@ public class EmailConnectionPool extends GenericObjectPool {
     public synchronized Object borrowObject() throws EmailConnectionPoolException {
 
         try {
-            if (log.isDebugEnabled()){
-                log.debug("Borrowing object from the connection pool...");
-            }
+            log.debug("Borrowing object from the connection pool...");
             return super.borrowObject();
         } catch (Exception e) {
             throw new EmailConnectionPoolException(format("Error occurred while borrowing connection from the pool. %s",
@@ -89,9 +95,7 @@ public class EmailConnectionPool extends GenericObjectPool {
     public synchronized void returnObject(Object obj) {
 
         try {
-            if (log.isDebugEnabled()){
-                log.debug("Returning object to the connection pool...");
-            }
+            log.debug("Returning object to the connection pool...");
             super.returnObject(obj);
         } catch (Exception e) {
             log.error(format("Error occurred while returning the connection to the pool. %s", e.getMessage()), e);
@@ -100,9 +104,10 @@ public class EmailConnectionPool extends GenericObjectPool {
 
     @Override
     public synchronized void close() throws EmailConnectionPoolException {
-        try{
+
+        try {
             super.close();
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new EmailConnectionPoolException(format("Error occurred while closing the connections. %s",
                     e.getMessage()), e);
         }

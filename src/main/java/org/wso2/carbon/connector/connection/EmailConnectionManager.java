@@ -29,10 +29,15 @@ public class EmailConnectionManager {
         this.connectionPoolMap = Collections.synchronizedMap(new HashMap<>());
     }
 
-    public static synchronized EmailConnectionManager getEmailConnectionManager(){
+    /**
+     * Gets Email Connection Manager
+     *
+     * @return EmailConnectionManager instance
+     */
+    public static EmailConnectionManager getEmailConnectionManager(){
         if (manager == null){
             synchronized (EmailConnectionManager.class) {
-                if(manager == null){
+                if (manager == null){
                     manager = new EmailConnectionManager();
                 }
             }
@@ -40,6 +45,12 @@ public class EmailConnectionManager {
         return manager;
     }
 
+    /**
+     * Adds new connection
+     *
+     * @param name name of the connection
+     * @param emailConnection email connection
+     */
     private void addConnection(String name, EmailConnection emailConnection) {
         if (log.isDebugEnabled()){
             log.debug(format("Creating connection : %s", name));
@@ -47,6 +58,13 @@ public class EmailConnectionManager {
         connectionMap.putIfAbsent(name, emailConnection);
     }
 
+    /**
+     * Retrieves connection by name
+     *
+     * @param name name of the connection
+     * @return Email connection
+     * @throws EmailConnectionException
+     */
     public EmailConnection getConnection(String name) throws EmailConnectionException {
         if (connectionMap.get(name) != null) {
             return connectionMap.get(name);
@@ -54,6 +72,12 @@ public class EmailConnectionManager {
         throw new EmailConnectionException(format("Connection with the name %s has not been initialized.", name));
     }
 
+    /**
+     * Creates a connection pool
+     *
+     * @param name name of the connection
+     * @param emailConnectionPool email connection pool
+     */
     private void addConnectionPool(String name, EmailConnectionPool emailConnectionPool) {
         if (log.isDebugEnabled()){
             log.debug(format("Creating connection pool for connection : %s", name));
@@ -61,6 +85,13 @@ public class EmailConnectionManager {
         connectionPoolMap.putIfAbsent(name, emailConnectionPool);
     }
 
+    /**
+     * Retrieves connection pool by name
+     *
+     * @param name name of the connection
+     * @return Email connection Pool
+     * @throws EmailConnectionException
+     */
     public EmailConnectionPool getConnectionPool(String name) throws EmailConnectionException {
         if (connectionPoolMap.get(name) != null){
             if (log.isDebugEnabled()){
@@ -71,6 +102,11 @@ public class EmailConnectionManager {
         throw new EmailConnectionException(format("Connection with the name %s has not been initialized.", name));
     }
 
+    /**
+     * Creates a connection with the given configuration
+     *
+     * @param connectionConfiguration connection configuration
+     */
     public synchronized void createConnection(ConnectionConfiguration connectionConfiguration) {
         String connectionName = connectionConfiguration.getConnectionName();
         if (connectionConfiguration.getProtocol().getName().equalsIgnoreCase(EmailProtocol.SMTP.name())
@@ -84,15 +120,17 @@ public class EmailConnectionManager {
             addConnectionPool(connectionConfiguration.getConnectionName(), pool);
         } else {
             if (log.isDebugEnabled()){
-                log.debug(format("Connection %s exists", connectionName));
+                log.debug(format("Connection: %s exists", connectionName));
             }
         }
     }
 
+    /**
+     * Clears connection pools
+     *
+     */
     public void clearConnectionPools(){
-        if (log.isDebugEnabled()){
-            log.debug("Clearing connection pools...");
-        }
+        log.debug("Clearing connection pools...");
         for (Map.Entry<String, EmailConnectionPool> pool : connectionPoolMap.entrySet()){
             try {
                 pool.getValue().close();

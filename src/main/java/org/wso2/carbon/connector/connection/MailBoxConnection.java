@@ -69,7 +69,7 @@ public class MailBoxConnection extends EmailConnection {
 
         try {
             if (log.isDebugEnabled()) {
-                log.debug(format("Closing folder %s ...", this.folder.getFullName()));
+                log.debug(format("Closing folder: %s ...", this.folder.getFullName()));
             }
             if (folder != null && folder.isOpen()) {
                 folder.close(expunge);

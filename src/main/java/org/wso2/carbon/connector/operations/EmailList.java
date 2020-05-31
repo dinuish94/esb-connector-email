@@ -31,7 +31,7 @@ import org.wso2.carbon.connector.pojo.EmailMessage;
 import org.wso2.carbon.connector.pojo.MailboxConfiguration;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailPropertyNames;
-import org.wso2.carbon.connector.utils.EmailUtils;
+import org.wso2.carbon.connector.utils.EmailParser;
 import org.wso2.carbon.connector.utils.ResponseGenerator;
 
 import java.time.LocalDateTime;
@@ -63,7 +63,7 @@ public class EmailList extends AbstractConnector {
     @Override
     public void connect(MessageContext messageContext) {
 
-        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
+//        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
         try {
@@ -102,12 +102,12 @@ public class EmailList extends AbstractConnector {
             }
 
             if (log.isDebugEnabled()){
-                log.debug(format("Retrieving messages from Mail folder %s ...", folderName));
+                log.debug(format("Retrieving messages from Mail folder: %s ...", folderName));
             }
             Message[] messages = mailbox.search(getSearchTerm(mailboxConfiguration));
 
             //TODO: Delete after retrieve
-            List<EmailMessage> messageList = EmailUtils.getMessagesList(getPaginatedMessages(messages,
+            List<EmailMessage> messageList = EmailParser.parseMessageList(getPaginatedMessages(messages,
                     mailboxConfiguration.getOffset(),
                     mailboxConfiguration.getLimit()));
 
@@ -143,7 +143,7 @@ public class EmailList extends AbstractConnector {
             messageList = messageList.subList(offset, toIndex);
         }
         if (log.isDebugEnabled()) {
-            log.debug(format("Retrieved %d messages...", messageList.size()));
+            log.debug(format("Retrieved %d message(s)...", messageList.size()));
         }
         return messageList;
     }

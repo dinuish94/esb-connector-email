@@ -28,6 +28,11 @@ import org.wso2.carbon.connector.utils.EmailPropertyNames;
 
 import java.util.List;
 
+import static java.lang.String.format;
+
+/**
+ * Retrieves an email attachment
+ */
 public class EmailGetAttachment extends AbstractConnector {
 
     @Override
@@ -39,14 +44,30 @@ public class EmailGetAttachment extends AbstractConnector {
 
         if (emailIndex != null && attachmentIndex != null && emailMessages != null) {
             EmailMessage emailMessage = emailMessages.get(Integer.parseInt(emailIndex));
+            if (log.isDebugEnabled()) {
+                log.debug(format("Retrieving email attachment for email at index %s and attachment at index %s...",
+                        emailIndex, attachmentIndex));
+            }
             Attachment attachment = emailMessage.getAttachments().get(Integer.parseInt(attachmentIndex));
-            messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_TYPE, attachment.getContentType());
-            messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_NAME, attachment.getName());
+            setProperties(messageContext, attachment);
             try {
                 ContentBuilder.buildContent(messageContext, attachment.getContent(), attachment.getContentType());
             } catch (ContentBuilderException e) {
                 handleException("Error occurred during setting attachment content.", e, messageContext);
             }
+        } else if (emailIndex == null) {
+            log.error("Failed to retrieve attachment. Email Index is not set.");
+        } else if (attachmentIndex == null) {
+            log.error("Failed to retrieve attachment. Attachment Index is not set.");
+        } else {
+            log.error("Failed to retrieve attachment. No emails retrieved. " +
+                    "Email list operation must be invoked first to retrieve emails.");
         }
+    }
+
+    private void setProperties(MessageContext messageContext, Attachment attachment) {
+
+        messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_TYPE, attachment.getContentType());
+        messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_NAME, attachment.getName());
     }
 }
