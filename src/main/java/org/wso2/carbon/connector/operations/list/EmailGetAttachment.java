@@ -46,15 +46,23 @@ public class EmailGetAttachment extends AbstractConnector {
                 .getProperty(EmailPropertyNames.PROPERTY_EMAILS);
 
         if (emailIndex != null && attachmentIndex != null && emailMessages != null) {
-            EmailMessage emailMessage = emailMessages.get(Integer.parseInt(emailIndex));
             if (log.isDebugEnabled()) {
                 log.debug(format("Retrieving email attachment for email at index %s and attachment at index %s...",
                         emailIndex, attachmentIndex));
             }
-            Attachment attachment = emailMessage.getAttachments().get(Integer.parseInt(attachmentIndex));
-            setProperties(messageContext, attachment);
             try {
-                ContentBuilder.buildContent(messageContext, attachment.getContent(), attachment.getContentType());
+                EmailMessage emailMessage = getEmail(messageContext, emailMessages, emailIndex);
+                if (emailMessage != null) {
+                    Attachment attachment = getEmailAttachment(messageContext, emailMessage, attachmentIndex);
+                    if (attachment != null) {
+                        setProperties(messageContext, attachment);
+                        ContentBuilder.buildContent(messageContext, attachment.getContent(),
+                                attachment.getContentType());
+                    }
+                }
+            } catch (IndexOutOfBoundsException e) {
+                setInvalidConfigurationError(messageContext,
+                        format("Failed to retrieve attachment. %s", e.getMessage()), e);
             } catch (ContentBuilderException e) {
                 handleException("Error occurred during setting attachment content.", e, messageContext);
             }
@@ -72,6 +80,47 @@ public class EmailGetAttachment extends AbstractConnector {
     }
 
     /**
+     * Gets email of respective index from list
+     *
+     * @param messageContext Message Context
+     * @param emailMessages  List of Email Messages
+     * @param emailIndex     Index of the email to be retrieved
+     * @return Email message in the relevant index
+     */
+    private EmailMessage getEmail(MessageContext messageContext, List<EmailMessage> emailMessages, String emailIndex) {
+
+        EmailMessage message = null;
+        try {
+            message = emailMessages.get(Integer.parseInt(emailIndex));
+        } catch (IndexOutOfBoundsException e) {
+            setInvalidConfigurationError(messageContext,
+                    format("Failed to retrieve attachment. %s", e.getMessage()), e);
+        }
+        return message;
+    }
+
+    /**
+     * Gets attachment of respective index from list
+     *
+     * @param messageContext  Message Context
+     * @param emailMessage    Email message to retrieve attachment from
+     * @param attachmentIndex Index of the attachment to be retrieved
+     * @return Attachment in the relevant index
+     */
+    private Attachment getEmailAttachment(MessageContext messageContext, EmailMessage emailMessage,
+                                          String attachmentIndex) {
+
+        Attachment attachment = null;
+        try {
+            attachment = emailMessage.getAttachments().get(Integer.parseInt(attachmentIndex));
+        } catch (IndexOutOfBoundsException e) {
+            setInvalidConfigurationError(messageContext,
+                    format("Failed to retrieve attachment. %s", e.getMessage()), e);
+        }
+        return attachment;
+    }
+
+    /**
      * Sets invalid configuration error
      *
      * @param messageContext Message Context
@@ -79,8 +128,19 @@ public class EmailGetAttachment extends AbstractConnector {
      */
     private void setInvalidConfigurationError(MessageContext messageContext, String errorString) {
 
+        setInvalidConfigurationError(messageContext, errorString, null);
+    }
+
+    /**
+     * Sets invalid configuration error
+     *
+     * @param messageContext Message Context
+     * @param errorString    Error description
+     */
+    private void setInvalidConfigurationError(MessageContext messageContext, String errorString, Exception e) {
+
         ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
-        handleException(errorString, messageContext);
+        handleException(errorString, e, messageContext);
     }
 
     /**
