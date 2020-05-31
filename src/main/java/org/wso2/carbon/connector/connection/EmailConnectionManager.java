@@ -111,10 +111,15 @@ public class EmailConnectionManager {
         String connectionName = connectionConfiguration.getConnectionName();
         if (connectionConfiguration.getProtocol().getName().equalsIgnoreCase(EmailProtocol.SMTP.name())
                 && connectionMap.get(connectionName) == null){
+            // For SMTP protocols a connection pool is not required as they require only a session, which need not be
+            // manipulated as the connection.
             EmailConnection connection = new EmailConnection(connectionConfiguration);
             addConnection(connectionConfiguration.getConnectionName(), connection);
         } else if (!connectionConfiguration.getProtocol().getName().equalsIgnoreCase(EmailProtocol.SMTP.name())
                 && connectionPoolMap.get(connectionName) == null) {
+            // For other protocols, such as IMAP and POP3, connections to a store and folder is made which requires to
+            // handled. Hence, for these instances, we will create a connection pool to optimize the use of these
+            // connections.
             EmailConnectionPool pool = new EmailConnectionPool(new EmailConnectionFactory(connectionConfiguration),
                     connectionConfiguration);
             addConnectionPool(connectionConfiguration.getConnectionName(), pool);

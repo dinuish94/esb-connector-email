@@ -38,4 +38,6 @@ public class EmailPropertyNames {
     public static final String PROPERTY_EMAIL_CC = "CC";
     public static final String PROPERTY_EMAIL_BCC = "BCC";
     public static final String PROPERTY_EMAIL_REPLY_TO = "REPLY_TO";
+    public static final String PROPERTY_ERROR_CODE = "ERROR_CODE";
+    public static final String PROPERTY_ERROR_MESSAGE = "ERROR_MESSAGE";
 }

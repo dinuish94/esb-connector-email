@@ -187,7 +187,8 @@ public class MessageBuilder {
      * @param recipientType whether the recipient is 'to', 'cc', 'bcc'
      * @throws MessagingException
      */
-    private void setRecipient(String recipient, Message message, Message.RecipientType recipientType) throws MessagingException {
+    private void setRecipient(String recipient, Message message, Message.RecipientType recipientType)
+            throws MessagingException {
 
         if (!StringUtils.isEmpty(recipient)) {
             message.setRecipients(
@@ -206,7 +207,8 @@ public class MessageBuilder {
      * @param contentTransferEncoding content transfer encoding
      * @return MessageBuilder instance
      */
-    public MessageBuilder withBody(String content, String contentType, String encoding, String contentTransferEncoding) {
+    public MessageBuilder withBody(String content, String contentType, String encoding,
+                                   String contentTransferEncoding) {
 
         this.contentType = StringUtils.isEmpty(contentType) ? EmailConstants.DEFAULT_CONTENT_TYPE : contentType;
         if (!StringUtils.isEmpty(encoding)) {

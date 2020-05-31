@@ -20,7 +20,7 @@ import static java.lang.String.format;
 /**
  * Generates responses
  */
-public class ResponseGenerator {
+public class ResponseHandler {
 
     private static final QName EMAILS_ELEMENT = new QName("emails");
     private static final QName EMAIL_ELEMENT = new QName("email");
@@ -32,24 +32,25 @@ public class ResponseGenerator {
     private static final String START_TAG = "<result><success>";
     private static final String END_TAG = "</success></result>";
 
-    private ResponseGenerator() {
+    private ResponseHandler() {
 
     }
 
     /**
-     * Generate the output payload with result status
+     * Generates the output payload with result status
      *
      * @param messageContext The message context that is processed
      * @param resultStatus   Result of the status
      */
-    public static void generateOutput(MessageContext messageContext, boolean resultStatus) throws ContentBuilderException {
+    public static void generateOutput(MessageContext messageContext, boolean resultStatus)
+            throws ContentBuilderException {
 
         String response = START_TAG + resultStatus + END_TAG;
-        ResponseGenerator.preparePayload(messageContext, response);
+        ResponseHandler.preparePayload(messageContext, response);
     }
 
     /**
-     * Set payload in body
+     * Sets payload in body
      *
      * @param messageContext The message context that is processed
      * @param output         Output response
@@ -76,7 +77,7 @@ public class ResponseGenerator {
     }
 
     /**
-     * Set email response in body
+     * Sets email response in body
      *
      * @param emailMessages  List of emails
      * @param messageContext The message context that is processed
@@ -106,4 +107,17 @@ public class ResponseGenerator {
         }
         axis2MsgCtx.getEnvelope().getBody().addChild(emailsElement);
     }
+
+    /**
+     * Sets the error code and error detail in message
+     *
+     * @param messageContext Message Context
+     * @param error          Error to be set
+     */
+    public static void setErrorsInMessage(MessageContext messageContext, Error error) {
+
+        messageContext.setProperty(EmailPropertyNames.PROPERTY_ERROR_CODE, error.getErrorCode());
+        messageContext.setProperty(EmailPropertyNames.PROPERTY_ERROR_MESSAGE, error.getErrorDetail());
+    }
+
 }

@@ -48,7 +48,8 @@ import static java.lang.String.format;
  */
 public final class ContentBuilder {
 
-    private static final QName TEXT_ELEMENT = new QName("http://ws.apache.org/commons/ns/payload", "text");
+    private static final QName TEXT_ELEMENT = new QName("http://ws.apache.org/commons/ns/payload",
+            "text");
 
     private ContentBuilder() {
 

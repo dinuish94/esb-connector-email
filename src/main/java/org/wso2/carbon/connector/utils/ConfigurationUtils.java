@@ -43,19 +43,32 @@ public final class ConfigurationUtils {
     public static MailboxConfiguration getMailboxConfigFromContext(MessageContext messageContext) {
 
         String folder = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FOLDER);
-        String deleteAfterRetrieve = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.DELETE_AFTER_RETRIEVE);
-        String seen = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_SEEN);
-        String answered = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_ANSWERED);
-        String recent = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_RECENT);
-        String deleted = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FLAG_DELETED);
-        String receivedSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.RECEIVED_SINCE);
-        String receivedUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.RECEIVED_UNTIL);
-        String sentSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SENT_SINCE);
-        String sentUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SENT_UNTIL);
-        String subjectRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.SUBJECT_REGEX);
-        String fromRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.FROM_REGEX);
-        String offset = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.OFFSET);
-        String limit = (String) ConnectorUtils.lookupTemplateParamater(messageContext, EmailConstants.LIMIT);
+        String deleteAfterRetrieve = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.DELETE_AFTER_RETRIEVE);
+        String seen = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.FLAG_SEEN);
+        String answered = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.FLAG_ANSWERED);
+        String recent = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.FLAG_RECENT);
+        String deleted = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.FLAG_DELETED);
+        String receivedSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.RECEIVED_SINCE);
+        String receivedUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.RECEIVED_UNTIL);
+        String sentSince = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.SENT_SINCE);
+        String sentUntil = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.SENT_UNTIL);
+        String subjectRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.SUBJECT_REGEX);
+        String fromRegex = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.FROM_REGEX);
+        String offset = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.OFFSET);
+        String limit = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                EmailConstants.LIMIT);
 
         if (StringUtils.isEmpty(folder)) {
             folder = EmailConstants.DEFAULT_FOLDER;

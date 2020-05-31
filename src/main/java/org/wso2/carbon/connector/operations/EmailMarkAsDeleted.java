@@ -25,11 +25,13 @@ import org.wso2.carbon.connector.core.AbstractConnector;
 import org.wso2.carbon.connector.exception.ContentBuilderException;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailConnectionPoolException;
+import org.wso2.carbon.connector.exception.EmailNotFoundException;
 import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.EmailOperationUtils;
-import org.wso2.carbon.connector.utils.ResponseGenerator;
+import org.wso2.carbon.connector.utils.Error;
+import org.wso2.carbon.connector.utils.ResponseHandler;
 
 import javax.mail.Flags;
 
@@ -45,6 +47,7 @@ public class EmailMarkAsDeleted extends AbstractConnector {
 
         String folder = (String) getParameter(messageContext, EmailConstants.FOLDER);
         String emailID = (String) getParameter(messageContext, EmailConstants.EMAIL_ID);
+        String errorString = "Error occurred while marking email with ID: %s as deleted. %s";
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
         try {
@@ -53,11 +56,19 @@ public class EmailMarkAsDeleted extends AbstractConnector {
             connection = (MailBoxConnection) pool.borrowObject();
             boolean status = EmailOperationUtils.changeEmailState(connection, folder, emailID,
                     new Flags(Flags.Flag.DELETED), false);
-            ResponseGenerator.generateOutput(messageContext, status);
-        } catch (EmailConnectionException | EmailConnectionPoolException | ContentBuilderException
-                | InvalidConfigurationException e) {
-            handleException(format("Error occurred while marking email with ID: %s as deleted. %s", emailID,
-                    e.getMessage()), e, messageContext);
+            ResponseHandler.generateOutput(messageContext, status);
+        } catch (EmailConnectionException | EmailConnectionPoolException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.CONNECTIVITY);
+            handleException(format(errorString, emailID, e.getMessage()), e, messageContext);
+        } catch (EmailNotFoundException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.EMAIL_NOT_FOUND);
+            handleException(format(errorString, emailID, e.getMessage()), e, messageContext);
+        } catch (InvalidConfigurationException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
+            handleException(format(errorString, folder, e.getMessage()), e, messageContext);
+        } catch (ContentBuilderException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.RESPONSE_GENERATION);
+            handleException(format(errorString, folder, e.getMessage()), e, messageContext);
         } finally {
             if (pool != null) {
                 pool.returnObject(connection);

@@ -22,6 +22,8 @@ import org.wso2.carbon.connector.core.AbstractConnector;
 import org.wso2.carbon.connector.pojo.EmailMessage;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.EmailPropertyNames;
+import org.wso2.carbon.connector.utils.Error;
+import org.wso2.carbon.connector.utils.ResponseHandler;
 
 import java.util.List;
 
@@ -33,7 +35,8 @@ import static java.lang.String.format;
 public class EmailGetBody extends AbstractConnector {
 
     @Override
-    public void connect(MessageContext messageContext){
+    public void connect(MessageContext messageContext) {
+
         String emailIndex = (String) getParameter(messageContext, EmailConstants.EMAIL_INDEX);
         List<EmailMessage> emailMessages = (List<EmailMessage>) messageContext
                 .getProperty(EmailPropertyNames.PROPERTY_EMAILS);
@@ -45,17 +48,23 @@ public class EmailGetBody extends AbstractConnector {
             }
             setProperties(messageContext, emailMessage);
         } else if (emailIndex == null) {
-            log.error("Failed to retrieve email body. Email Index is not set.");
+            setInvalidConfigurationError(messageContext,
+                    "Failed to retrieve email body. Email Index is not set.");
         } else {
-            log.error("Failed to retrieve email body. No emails retrieved. " +
-                    "Email list operation must be invoked first to retrieve emails.");
+            setInvalidConfigurationError(messageContext,
+                    "Failed to retrieve email body. No emails retrieved. " +
+                            "Email list operation must be invoked first to retrieve emails.");
         }
     }
 
+    /**
+     * Sets email message content in Message Context
+     *
+     * @param messageContext Message Context
+     * @param emailMessage   Email
+     */
     private void setProperties(MessageContext messageContext, EmailMessage emailMessage) {
 
-        messageContext.setProperty(EmailPropertyNames.PROPERTY_HTML_CONTENT, emailMessage.getHtmlContent());
-        messageContext.setProperty(EmailPropertyNames.PROPERTY_TEXT_CONTENT, emailMessage.getTextContent());
         messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_ID, emailMessage.getEmailId());
         messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_TO, emailMessage.getTo());
         messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_FROM, emailMessage.getFrom());
@@ -63,5 +72,19 @@ public class EmailGetBody extends AbstractConnector {
         messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_BCC, emailMessage.getBcc());
         messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_SUBJECT, emailMessage.getSubject());
         messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAIL_REPLY_TO, emailMessage.getReplyTo());
+        messageContext.setProperty(EmailPropertyNames.PROPERTY_HTML_CONTENT, emailMessage.getHtmlContent());
+        messageContext.setProperty(EmailPropertyNames.PROPERTY_TEXT_CONTENT, emailMessage.getTextContent());
+    }
+
+    /**
+     * Sets invalid configuration error
+     *
+     * @param messageContext Message Context
+     * @param errorString    Error description
+     */
+    private void setInvalidConfigurationError(MessageContext messageContext, String errorString) {
+
+        ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
+        handleException(errorString, messageContext);
     }
 }

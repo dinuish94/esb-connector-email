@@ -38,7 +38,8 @@ public class EmailConnection {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
 
-                        return new PasswordAuthentication(connectionConfiguration.getUsername(), connectionConfiguration.getPassword());
+                        return new PasswordAuthentication(connectionConfiguration.getUsername(),
+                                connectionConfiguration.getPassword());
                     }
                 });
     }
@@ -79,8 +80,10 @@ public class EmailConnection {
             props.setProperty(protocol.getStartTlsProperty(), "true");
         } else {
             props.setProperty(protocol.getSslEnableProperty(), "true");
-            props.setProperty(protocol.getSocketFactoryFallbackProperty(), EmailConstants.DEFAULT_SOCKETFACTORY_FALLBACK);
-            props.setProperty(protocol.getSocketFactoryPortProperty(), String.valueOf(connectionConfiguration.getPort()));
+            props.setProperty(protocol.getSocketFactoryFallbackProperty(),
+                    EmailConstants.DEFAULT_SOCKETFACTORY_FALLBACK);
+            props.setProperty(protocol.getSocketFactoryPortProperty(),
+                    String.valueOf(connectionConfiguration.getPort()));
         }
 
         if (connectionConfiguration.getCipherSuites() != null) {

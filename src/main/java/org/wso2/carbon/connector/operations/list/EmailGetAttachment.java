@@ -25,6 +25,8 @@ import org.wso2.carbon.connector.pojo.EmailMessage;
 import org.wso2.carbon.connector.utils.ContentBuilder;
 import org.wso2.carbon.connector.utils.EmailConstants;
 import org.wso2.carbon.connector.utils.EmailPropertyNames;
+import org.wso2.carbon.connector.utils.Error;
+import org.wso2.carbon.connector.utils.ResponseHandler;
 
 import java.util.List;
 
@@ -40,7 +42,8 @@ public class EmailGetAttachment extends AbstractConnector {
 
         String emailIndex = (String) getParameter(messageContext, EmailConstants.EMAIL_INDEX);
         String attachmentIndex = (String) getParameter(messageContext, EmailConstants.ATTACHMENT_INDEX);
-        List<EmailMessage> emailMessages =  (List<EmailMessage>) messageContext.getProperty(EmailPropertyNames.PROPERTY_EMAILS);
+        List<EmailMessage> emailMessages = (List<EmailMessage>) messageContext
+                .getProperty(EmailPropertyNames.PROPERTY_EMAILS);
 
         if (emailIndex != null && attachmentIndex != null && emailMessages != null) {
             EmailMessage emailMessage = emailMessages.get(Integer.parseInt(emailIndex));
@@ -56,15 +59,36 @@ public class EmailGetAttachment extends AbstractConnector {
                 handleException("Error occurred during setting attachment content.", e, messageContext);
             }
         } else if (emailIndex == null) {
-            log.error("Failed to retrieve attachment. Email Index is not set.");
+            setInvalidConfigurationError(messageContext,
+                    "Failed to retrieve attachment. Email Index is not set.");
         } else if (attachmentIndex == null) {
-            log.error("Failed to retrieve attachment. Attachment Index is not set.");
+            setInvalidConfigurationError(messageContext,
+                    "Failed to retrieve attachment. Attachment Index is not set.");
         } else {
-            log.error("Failed to retrieve attachment. No emails retrieved. " +
-                    "Email list operation must be invoked first to retrieve emails.");
+            setInvalidConfigurationError(messageContext,
+                    "Failed to retrieve attachment. No emails retrieved. " +
+                            "Email list operation must be invoked first to retrieve emails.");
         }
     }
 
+    /**
+     * Sets invalid configuration error
+     *
+     * @param messageContext Message Context
+     * @param errorString    Error description
+     */
+    private void setInvalidConfigurationError(MessageContext messageContext, String errorString) {
+
+        ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
+        handleException(errorString, messageContext);
+    }
+
+    /**
+     * Sets attachment properties in Message Context
+     *
+     * @param messageContext Message Context
+     * @param attachment     Attachment
+     */
     private void setProperties(MessageContext messageContext, Attachment attachment) {
 
         messageContext.setProperty(EmailPropertyNames.PROPERTY_ATTACHMENT_TYPE, attachment.getContentType());

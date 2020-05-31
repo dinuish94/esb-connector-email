@@ -48,6 +48,7 @@ public enum EmailProtocol {
      * Creates an Email Protocol instance.
      *
      * @param name the name of the protocol.
+     * @param secure whether the protocol is secure or not.
      */
     EmailProtocol(String name, boolean secure) {
 

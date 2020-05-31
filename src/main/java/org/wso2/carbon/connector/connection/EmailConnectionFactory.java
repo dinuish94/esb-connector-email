@@ -18,6 +18,7 @@
 package org.wso2.carbon.connector.connection;
 
 import org.apache.commons.pool.PoolableObjectFactory;
+import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.pojo.ConnectionConfiguration;
 
 /**
@@ -33,7 +34,7 @@ public class EmailConnectionFactory implements PoolableObjectFactory {
     }
 
     @Override
-    public MailBoxConnection makeObject() {
+    public MailBoxConnection makeObject() throws EmailConnectionException {
         return new MailBoxConnection(connectionConfiguration);
     }
 

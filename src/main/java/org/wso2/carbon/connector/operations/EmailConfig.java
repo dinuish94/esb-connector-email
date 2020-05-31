@@ -25,6 +25,8 @@ import org.wso2.carbon.connector.core.AbstractConnector;
 import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.pojo.ConnectionConfiguration;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
+import org.wso2.carbon.connector.utils.Error;
+import org.wso2.carbon.connector.utils.ResponseHandler;
 
 import static java.lang.String.format;
 
@@ -40,6 +42,7 @@ public class EmailConfig extends AbstractConnector implements ManagedLifecycle {
             ConnectionConfiguration configuration = ConfigurationUtils.getConnectionConfigFromContext(messageContext);
             EmailConnectionManager.getEmailConnectionManager().createConnection(configuration);
         } catch (InvalidConfigurationException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
             handleException(format("Failed to initiate email configuration. %s", e.getMessage()), messageContext);
         }
     }

@@ -30,9 +30,10 @@ import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.pojo.EmailMessage;
 import org.wso2.carbon.connector.pojo.MailboxConfiguration;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
-import org.wso2.carbon.connector.utils.EmailPropertyNames;
 import org.wso2.carbon.connector.utils.EmailParser;
-import org.wso2.carbon.connector.utils.ResponseGenerator;
+import org.wso2.carbon.connector.utils.EmailPropertyNames;
+import org.wso2.carbon.connector.utils.Error;
+import org.wso2.carbon.connector.utils.ResponseHandler;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -63,17 +64,30 @@ public class EmailList extends AbstractConnector {
     @Override
     public void connect(MessageContext messageContext) {
 
+        String errorString = "Error occurred while retrieving messages from folder: %s. %s";
 //        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
+        String folderName = "";
+
         try {
             String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
-            retrieveMessages(connection, messageContext);
-        } catch (EmailConnectionException | EmailConnectionPoolException | InvalidConfigurationException e) {
-            log.error(e.getMessage());
-            handleException(e.getMessage(), e, messageContext);
+            MailboxConfiguration mailboxConfiguration = ConfigurationUtils.getMailboxConfigFromContext(messageContext);
+            folderName = mailboxConfiguration.getFolder();
+            List<EmailMessage> messageList = retrieveMessages(connection, mailboxConfiguration);
+            messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAILS, messageList);
+            ResponseHandler.setEmailListResponse(messageList, messageContext);
+        } catch (EmailConnectionException | EmailConnectionPoolException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.CONNECTIVITY);
+            handleException(format(errorString, folderName, e.getMessage()), e, messageContext);
+        } catch (InvalidConfigurationException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
+            handleException(format(errorString, folderName, e.getMessage()), e, messageContext);
+        } catch (EmailParsingException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.RESPONSE_GENERATION);
+            handleException(format(errorString, folderName, e.getMessage()), e, messageContext);
         } finally {
             if (pool != null) {
                 pool.returnObject(connection);
@@ -84,15 +98,15 @@ public class EmailList extends AbstractConnector {
     /**
      * Retrieve messages that matches given filtering criteria
      *
-     * @param connection     Mailbox connection to be used
-     * @param messageContext Message Context
+     * @param connection           Mailbox connection to be used
+     * @param mailboxConfiguration Mailbox Configurations
      */
-    private void retrieveMessages(MailBoxConnection connection, MessageContext messageContext) {
-
-        MailboxConfiguration mailboxConfiguration = ConfigurationUtils.getMailboxConfigFromContext(messageContext);
-        String folderName = mailboxConfiguration.getFolder();
+    private List<EmailMessage> retrieveMessages(MailBoxConnection connection, MailboxConfiguration mailboxConfiguration)
+            throws EmailConnectionException, EmailParsingException {
 
         try {
+            String folderName = mailboxConfiguration.getFolder();
+
             Folder mailbox;
 
             if (mailboxConfiguration.getDeleteAfterRetrieve()) {
@@ -101,7 +115,7 @@ public class EmailList extends AbstractConnector {
                 mailbox = connection.getFolder(folderName, Folder.READ_ONLY);
             }
 
-            if (log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug(format("Retrieving messages from Mail folder: %s ...", folderName));
             }
             Message[] messages = mailbox.search(getSearchTerm(mailboxConfiguration));
@@ -110,14 +124,10 @@ public class EmailList extends AbstractConnector {
             List<EmailMessage> messageList = EmailParser.parseMessageList(getPaginatedMessages(messages,
                     mailboxConfiguration.getOffset(),
                     mailboxConfiguration.getLimit()));
-
-            messageContext.setProperty(EmailPropertyNames.PROPERTY_EMAILS, messageList);
-            ResponseGenerator.setEmailListResponse(messageList, messageContext);
-
             connection.closeFolder(false);
-        } catch (EmailParsingException | MessagingException e) {
-            handleException(e.getMessage(), e, messageContext);
-            log.error(format("Error occurred while retrieving messages. %s", e.getMessage()), e);
+            return messageList;
+        } catch (MessagingException e) {
+            throw new EmailConnectionException(format("Error occurred when searching emails. %s", e.getMessage()), e);
         }
     }
 
@@ -136,7 +146,7 @@ public class EmailList extends AbstractConnector {
         if (toIndex > messageList.size()) {
             toIndex = messageList.size();
         }
-        if (log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug(format("Retrieving messages from index %d to %d ...", offset, toIndex));
         }
         if (messageList.size() >= offset) {
@@ -153,16 +163,17 @@ public class EmailList extends AbstractConnector {
      *
      * @param mailboxConfiguration Configured parameters containing the filters
      * @return {@link SearchTerm} containing all the filters
-     * @throws AddressException if failed to parse email address
+     * @throws EmailConnectionException if failed to parse email address
      */
-    private SearchTerm getSearchTerm(MailboxConfiguration mailboxConfiguration) throws AddressException {
+    private SearchTerm getSearchTerm(MailboxConfiguration mailboxConfiguration) throws EmailConnectionException {
 
         FlagTerm seenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), mailboxConfiguration.getSeen());
         FlagTerm answeredFlagTerm = new FlagTerm(new Flags(Flags.Flag.ANSWERED), mailboxConfiguration.getAnswered());
         FlagTerm recentFlagTerm = new FlagTerm(new Flags(Flags.Flag.RECENT), mailboxConfiguration.getRecent());
         FlagTerm deletedFlagTerm = new FlagTerm(new Flags(Flags.Flag.DELETED), mailboxConfiguration.getDeleted());
 
-        AndTerm searchTerm = new AndTerm(deletedFlagTerm, new AndTerm(seenFlagTerm, new AndTerm(answeredFlagTerm, recentFlagTerm)));
+        AndTerm searchTerm = new AndTerm(deletedFlagTerm, new AndTerm(seenFlagTerm, new AndTerm(answeredFlagTerm,
+                recentFlagTerm)));
 
         String subjectRegex = mailboxConfiguration.getSubjectRegex();
         if (!StringUtils.isEmpty(subjectRegex)) {
@@ -172,35 +183,44 @@ public class EmailList extends AbstractConnector {
 
         String fromRegex = mailboxConfiguration.getFromRegex();
         if (!StringUtils.isEmpty(fromRegex)) {
-            FromTerm fromTerm = new FromTerm(new InternetAddress(fromRegex));
-            searchTerm = new AndTerm(searchTerm, fromTerm);
+            try {
+                FromTerm fromTerm = new FromTerm(new InternetAddress(fromRegex));
+                searchTerm = new AndTerm(searchTerm, fromTerm);
+            } catch (AddressException e) {
+                throw new EmailConnectionException(format("Error occurred when parsing 'from' email address. %s",
+                        e.getMessage()));
+            }
         }
 
         String receivedSince = mailboxConfiguration.getReceivedSince();
         if (receivedSince != null) {
             LocalDateTime date = LocalDateTime.parse(receivedSince);
-            ReceivedDateTerm receivedSinceDateTerm = new ReceivedDateTerm(ComparisonTerm.GT, from(date.atZone(ZoneId.systemDefault()).toInstant()));
+            ReceivedDateTerm receivedSinceDateTerm = new ReceivedDateTerm(ComparisonTerm.GT,
+                    from(date.atZone(ZoneId.systemDefault()).toInstant()));
             searchTerm = new AndTerm(searchTerm, receivedSinceDateTerm);
         }
 
         String receivedUntil = mailboxConfiguration.getReceivedUntil();
         if (receivedUntil != null) {
             LocalDateTime date = LocalDateTime.parse(receivedUntil);
-            ReceivedDateTerm receivedUntilDateTerm = new ReceivedDateTerm(ComparisonTerm.LT, from(date.atZone(ZoneId.systemDefault()).toInstant()));
+            ReceivedDateTerm receivedUntilDateTerm = new ReceivedDateTerm(ComparisonTerm.LT,
+                    from(date.atZone(ZoneId.systemDefault()).toInstant()));
             searchTerm = new AndTerm(searchTerm, receivedUntilDateTerm);
         }
 
         String sentSince = mailboxConfiguration.getSentSince();
         if (sentSince != null) {
             LocalDateTime date = LocalDateTime.parse(sentSince);
-            ReceivedDateTerm sentSinceDateTerm = new ReceivedDateTerm(ComparisonTerm.GT, from(date.atZone(ZoneId.systemDefault()).toInstant()));
+            ReceivedDateTerm sentSinceDateTerm = new ReceivedDateTerm(ComparisonTerm.GT,
+                    from(date.atZone(ZoneId.systemDefault()).toInstant()));
             searchTerm = new AndTerm(searchTerm, sentSinceDateTerm);
         }
 
         String sentUntil = mailboxConfiguration.getSentUntil();
         if (sentUntil != null) {
             LocalDateTime date = LocalDateTime.parse(sentUntil);
-            ReceivedDateTerm sentUntilDateTerm = new ReceivedDateTerm(ComparisonTerm.LT, from(date.atZone(ZoneId.systemDefault()).toInstant()));
+            ReceivedDateTerm sentUntilDateTerm = new ReceivedDateTerm(ComparisonTerm.LT,
+                    from(date.atZone(ZoneId.systemDefault()).toInstant()));
             searchTerm = new AndTerm(searchTerm, sentUntilDateTerm);
         }
         return searchTerm;

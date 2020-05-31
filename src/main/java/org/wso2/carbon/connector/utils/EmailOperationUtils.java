@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.connector.connection.MailBoxConnection;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
+import org.wso2.carbon.connector.exception.EmailNotFoundException;
 
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -55,7 +56,7 @@ public final class EmailOperationUtils {
      * @throws EmailConnectionException thrown if failed to set the flags on the message
      */
     public static boolean changeEmailState(MailBoxConnection connection, String folder, String emailID, Flags flags,
-                                           boolean expunge) throws EmailConnectionException {
+                                           boolean expunge) throws EmailConnectionException, EmailNotFoundException {
 
         boolean success = false;
         if (StringUtils.isEmpty(folder)) {
@@ -77,9 +78,8 @@ public final class EmailOperationUtils {
                     }
                 }
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug(format("No emails found with ID: %s.", emailID));
-                }
+                log.error(format("No emails found with ID: %s.", emailID));
+                throw new EmailNotFoundException(format("No emails found with ID: %s.", emailID));
             }
             connection.closeFolder(expunge);
         } catch (MessagingException e) {

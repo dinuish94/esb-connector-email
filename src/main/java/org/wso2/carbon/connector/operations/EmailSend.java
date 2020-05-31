@@ -27,8 +27,9 @@ import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.InvalidConfigurationException;
 import org.wso2.carbon.connector.utils.ConfigurationUtils;
 import org.wso2.carbon.connector.utils.EmailConstants;
+import org.wso2.carbon.connector.utils.Error;
 import org.wso2.carbon.connector.utils.MessageBuilder;
-import org.wso2.carbon.connector.utils.ResponseGenerator;
+import org.wso2.carbon.connector.utils.ResponseHandler;
 
 import javax.mail.MessagingException;
 import javax.mail.Transport;
@@ -44,13 +45,21 @@ public class EmailSend extends AbstractConnector {
     @Override
     public void connect(MessageContext messageContext) {
 
+        String errorString = "Error occurred while sending the email. %s";
         try {
             String name = ConfigurationUtils.getConnectionName(messageContext);
             EmailConnection connection = EmailConnectionManager.getEmailConnectionManager().getConnection(name);
-            boolean resultStatus = sendMessage(messageContext, connection);
-            ResponseGenerator.generateOutput(messageContext, resultStatus);
-        } catch (EmailConnectionException | InvalidConfigurationException | ContentBuilderException e) {
-            handleException(format("Error occurred while sending the email. %s", e.getMessage()), e, messageContext);
+            sendMessage(messageContext, connection);
+            ResponseHandler.generateOutput(messageContext, true);
+        } catch (EmailConnectionException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.CONNECTIVITY);
+            handleException(format(errorString, e.getMessage()), e, messageContext);
+        } catch (InvalidConfigurationException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
+            handleException(format(errorString, e.getMessage()), e, messageContext);
+        } catch (ContentBuilderException e) {
+            ResponseHandler.setErrorsInMessage(messageContext, Error.RESPONSE_GENERATION);
+            handleException(format(errorString, e.getMessage()), e, messageContext);
         }
     }
 
@@ -61,9 +70,9 @@ public class EmailSend extends AbstractConnector {
      * @param session        Mail Session to be used
      * @return a result status indicating whether the email send is successful or not
      */
-    private boolean sendMessage(MessageContext messageContext, EmailConnection session) {
+    private void sendMessage(MessageContext messageContext, EmailConnection session) throws EmailConnectionException,
+            InvalidConfigurationException {
 
-        boolean isSuccess = false;
         String to = (String) getParameter(messageContext, EmailConstants.TO);
         String from = (String) getParameter(messageContext, EmailConstants.FROM);
         String cc = (String) getParameter(messageContext, EmailConstants.CC);
@@ -77,7 +86,8 @@ public class EmailSend extends AbstractConnector {
         String contentTransferEncoding = (String) getParameter(messageContext, EmailConstants.CONTENT_TRANSFER_ENCODING);
 
         if (StringUtils.isEmpty(to)) {
-            log.error("Error occurred while sending the email. Mandatory parameter 'To' is not provided.");
+            throw new InvalidConfigurationException("Error occurred while sending the email. " +
+                    "Mandatory parameter 'To' is not provided.");
         } else {
             try {
                 //TODO: Set headers from transport properties
@@ -92,14 +102,11 @@ public class EmailSend extends AbstractConnector {
                         .withAttachments(attachments)
                         .build();
                 Transport.send(message);
-
                 log.debug("Email was sent successfully...");
-                isSuccess = true;
             } catch (MessagingException e) {
-                handleException(format("Error occurred while sending the email. %s ", e.getMessage()), e, messageContext);
+                throw new EmailConnectionException(format("Error occurred while sending the email. %s", e.getMessage()),
+                        e);
             }
         }
-
-        return isSuccess;
     }
 }
