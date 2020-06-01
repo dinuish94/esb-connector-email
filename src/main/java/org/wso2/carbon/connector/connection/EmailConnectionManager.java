@@ -17,7 +17,7 @@ import static java.lang.String.format;
  */
 public class EmailConnectionManager {
 
-    private static Log log = LogFactory.getLog(EmailConnectionManager.class);
+    private static final Log log = LogFactory.getLog(EmailConnectionManager.class);
 
     private Map<String, EmailConnection> connectionMap;
     private Map<String, EmailConnectionPool> connectionPoolMap;
@@ -34,13 +34,9 @@ public class EmailConnectionManager {
      *
      * @return EmailConnectionManager instance
      */
-    public static EmailConnectionManager getEmailConnectionManager(){
+    public static synchronized EmailConnectionManager getEmailConnectionManager(){
         if (manager == null){
-            synchronized (EmailConnectionManager.class) {
-                if (manager == null){
-                    manager = new EmailConnectionManager();
-                }
-            }
+            manager = new EmailConnectionManager();
         }
         return manager;
     }
@@ -63,7 +59,7 @@ public class EmailConnectionManager {
      *
      * @param name name of the connection
      * @return Email connection
-     * @throws EmailConnectionException
+     * @throws EmailConnectionException if connection from the name does not exist
      */
     public EmailConnection getConnection(String name) throws EmailConnectionException {
         if (connectionMap.get(name) != null) {
@@ -90,7 +86,7 @@ public class EmailConnectionManager {
      *
      * @param name name of the connection
      * @return Email connection Pool
-     * @throws EmailConnectionException
+     * @throws EmailConnectionException if connection pool from the name does not exist
      */
     public EmailConnectionPool getConnectionPool(String name) throws EmailConnectionException {
         if (connectionPoolMap.get(name) != null){

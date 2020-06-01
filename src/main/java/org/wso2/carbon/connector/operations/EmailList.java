@@ -68,7 +68,7 @@ public class EmailList extends AbstractConnector {
 //        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
-        String folderName = "";
+        String folderName = StringUtils.EMPTY;
 
         try {
             String connectionName = ConfigurationUtils.getConnectionName(messageContext);
@@ -122,7 +122,7 @@ public class EmailList extends AbstractConnector {
             Message[] messages = mailbox.search(getSearchTerm(mailboxConfiguration));
             List<EmailMessage> messageList = EmailParser.parseMessageList(getPaginatedMessages(messages,
                     mailboxConfiguration.getOffset(), mailboxConfiguration.getLimit(), deleteAfterRetrieval));
-            connection.closeFolder(false);
+            connection.closeFolder(deleteAfterRetrieval);
             return messageList;
         } catch (MessagingException e) {
             throw new EmailConnectionException(format("Error occurred when searching emails. %s", e.getMessage()), e);
@@ -167,7 +167,9 @@ public class EmailList extends AbstractConnector {
      * @param to       End index
      */
     private void markMessagesAsDeleted(Message[] messages, int from, int to) {
-
+        if (log.isDebugEnabled()) {
+            log.debug(format("Marking messages from %d to %d as deleted...",from, to));
+        }
         for (int i = from; i < to; i++) {
             try {
                 messages[i].setFlag(Flags.Flag.DELETED, true);

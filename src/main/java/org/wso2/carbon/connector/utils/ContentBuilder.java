@@ -27,6 +27,7 @@ import org.apache.axiom.soap.SOAPFactory;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.transport.TransportUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.synapse.MessageContext;
 import org.apache.synapse.commons.json.JsonUtil;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
@@ -69,18 +70,18 @@ public final class ContentBuilder {
         org.apache.axis2.context.MessageContext axis2MessageContext = ((Axis2MessageContext) messageContext)
                 .getAxis2MessageContext();
         try {
-            if (contentType.equalsIgnoreCase(ContentTypes.TEXT_XML)
-                    || contentType.equalsIgnoreCase(ContentTypes.APPLICATION_XML)) {
+            if (ContentTypes.TEXT_XML.equalsIgnoreCase(contentType)
+                    || ContentTypes.APPLICATION_XML.equalsIgnoreCase(contentType)) {
                 setXMLContent(inputStream, axis2MessageContext);
-            } else if (contentType.equalsIgnoreCase(ContentTypes.APPLICATION_JSON)) {
+            } else if (ContentTypes.APPLICATION_JSON.equalsIgnoreCase(contentType)) {
                 setJSONPayload(inputStream, axis2MessageContext);
-            } else if (contentType.equalsIgnoreCase(ContentTypes.TEXT_PLAIN)
-                    || contentType.equalsIgnoreCase(ContentTypes.TEXT_CSV)) {
+            } else if (ContentTypes.TEXT_PLAIN.equalsIgnoreCase(contentType)
+                    || ContentTypes.TEXT_CSV.equalsIgnoreCase(contentType)) {
                 setTextContent(inputStream, axis2MessageContext);
             } else {
                 setBinaryContent(inputStream, axis2MessageContext);
             }
-        } catch (AxisFault e){
+        } catch (AxisFault e) {
             throw new ContentBuilderException(format("Failed to build content. %s", e.getMessage()), e);
         }
     }
@@ -178,7 +179,7 @@ public final class ContentBuilder {
         OMFactory factory = OMAbstractFactory.getOMFactory();
         OMElement textElement = factory.createOMElement(TEXT_ELEMENT);
         if (content == null) {
-            content = "";
+            content = StringUtils.EMPTY ;
         }
         textElement.setText(content);
         return textElement;

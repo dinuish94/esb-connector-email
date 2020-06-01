@@ -28,5 +28,8 @@ public final class ContentTypes {
     public static final String TEXT_XML = "text/xml";
     public static final String TEXT_CSV = "text/csv";
     public static final String TEXT_PLAIN = "text/plain";
+    private ContentTypes() {
+
+    }
 
 }

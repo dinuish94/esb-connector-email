@@ -121,7 +121,7 @@ public enum EmailProtocol {
      *
      * @return the protocol ssl ciphersuites property.
      */
-    public String getSslCiphersuitesProperty() {
+    public String getSslCipherSuitesProperty() {
 
         return unmaskProperty(EmailConfigProperties.PROPERTY_SSL_CIPHER_SUITES);
     }

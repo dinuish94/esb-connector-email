@@ -23,7 +23,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.connector.connection.MailBoxConnection;
 import org.wso2.carbon.connector.exception.EmailConnectionException;
 import org.wso2.carbon.connector.exception.EmailNotFoundException;
+import org.wso2.carbon.connector.exception.InvalidConfigurationException;
+import org.wso2.carbon.connector.pojo.Attachment;
+import org.wso2.carbon.connector.pojo.EmailMessage;
 
+import java.util.List;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -38,7 +42,7 @@ import static java.lang.String.format;
  */
 public final class EmailOperationUtils {
 
-    private static Log log = LogFactory.getLog(EmailOperationUtils.class);
+    private static final Log log = LogFactory.getLog(EmailOperationUtils.class);
 
     private EmailOperationUtils() {
 
@@ -50,13 +54,14 @@ public final class EmailOperationUtils {
      * @param connection Mailbox connection to be used to connect to server
      * @param folderName Mailbox name
      * @param emailID    Email ID of the message of which the state is to be changed
-     * @param flags      Flags to be set
+     * @param flag       Flag to be set
      * @param expunge    whether to delete messages marked for deletion
      * @return true if the status update was successful, false otherwise
      * @throws EmailConnectionException thrown if failed to set the flags on the message
      */
-    public static boolean changeEmailState(MailBoxConnection connection, String folderName, String emailID, Flags flags,
-                                           boolean expunge) throws EmailConnectionException, EmailNotFoundException {
+    public static boolean changeEmailState(MailBoxConnection connection, String folderName, String emailID,
+                                           Flags.Flag flag, boolean expunge)
+            throws EmailConnectionException, EmailNotFoundException {
 
         boolean success = false;
         if (StringUtils.isEmpty(folderName)) {
@@ -70,8 +75,9 @@ public final class EmailOperationUtils {
 
             if (messages.length > 0) {
                 Message message = messages[0];
-                if (flags != null) {
-                    folder.setFlags(new Message[]{message}, flags, true);
+                if (flag != null) {
+//                    folder.setFlags(new Message[]{message}, flags, true);
+                    message.setFlag(flag, true);
                     success = true;
                     if (log.isDebugEnabled()) {
                         log.debug(format("State updated for message with ID: %s...", emailID));
@@ -87,5 +93,44 @@ public final class EmailOperationUtils {
                     e.getMessage()), e);
         }
         return success;
+    }
+
+    /**
+     * Gets email of respective index from list
+     *
+     * @param emailMessages List of Email Messages
+     * @param emailIndex    Index of the email to be retrieved
+     * @return Email message in the relevant index
+     */
+    public static EmailMessage getEmail(List<EmailMessage> emailMessages, String emailIndex)
+            throws InvalidConfigurationException {
+
+        EmailMessage message;
+        try {
+            message = emailMessages.get(Integer.parseInt(emailIndex));
+        } catch (IndexOutOfBoundsException e) {
+            throw new InvalidConfigurationException("Failed to retrieve email. Invalid index set for email index.", e);
+        }
+        return message;
+    }
+
+    /**
+     * Gets attachment of respective index from list
+     *
+     * @param emailMessage    Email message to retrieve attachment from
+     * @param attachmentIndex Index of the attachment to be retrieved
+     * @return Attachment in the relevant index
+     */
+    public static Attachment getEmailAttachment(EmailMessage emailMessage, String attachmentIndex)
+            throws InvalidConfigurationException {
+
+        Attachment attachment;
+        try {
+            attachment = emailMessage.getAttachments().get(Integer.parseInt(attachmentIndex));
+        } catch (IndexOutOfBoundsException e) {
+            throw new InvalidConfigurationException("Failed to retrieve attachment. " +
+                    "Invalid index set for attachment index.", e);
+        }
+        return attachment;
     }
 }

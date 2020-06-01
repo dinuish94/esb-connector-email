@@ -34,7 +34,7 @@ import static java.lang.String.format;
 /**
  * Parses emails
  */
-public class EmailParser {
+public final class EmailParser {
 
     private EmailParser() {
 

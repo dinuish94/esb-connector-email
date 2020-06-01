@@ -19,10 +19,6 @@ package org.wso2.carbon.connector.utils;
 
 public final class EmailConstants {
 
-    private EmailConstants() {
-
-    }
-
     // Template Parameters
     public static final String NAME = "name";
     public static final String TO = "to";
@@ -72,10 +68,8 @@ public final class EmailConstants {
     public static final String EXHAUSTED_ACTION = "exhaustedAction";
     public static final String INITIALISATION_POLICY = "initialisationPolicy";
     public static final String DISABLE_POOLING = "disablePooling";
-
     //Java Mail API Constants
-    public static final String CONTENT_TRANSFER_ENCODING_HEADER ="Content-Transfer-Encoding";
-
+    public static final String CONTENT_TRANSFER_ENCODING_HEADER = "Content-Transfer-Encoding";
     // Default configuration values
     public static final String DEFAULT_CONTENT_TYPE = "text/html";
     public static final String DEFAULT_SOCKETFACTORY_CLASS = "javax.net.ssl.SSLSocketFactory";
@@ -85,11 +79,14 @@ public final class EmailConstants {
     public static final int DEFAULT_LIMIT = 10;
     public static final int DEFAULT_MAX_ACTIVE_CONNECTIONS = 4;
     public static final int DEFAULT_MAX_IDLE_CONNECTIONS = 2;
-
     // Flags
     public static final String FLAG_SEEN = "seen";
     public static final String FLAG_ANSWERED = "answered";
     public static final String FLAG_DELETED = "deleted";
     public static final String FLAG_RECENT = "recent";
+
+    private EmailConstants() {
+
+    }
 
 }

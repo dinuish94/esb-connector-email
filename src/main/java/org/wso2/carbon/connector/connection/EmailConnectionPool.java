@@ -30,7 +30,7 @@ import static java.lang.String.format;
  */
 public class EmailConnectionPool extends GenericObjectPool {
 
-    private static Log log = LogFactory.getLog(EmailConnectionPool.class);
+    private static final Log log = LogFactory.getLog(EmailConnectionPool.class);
 
     EmailConnectionPool(EmailConnectionFactory objFactory, ConnectionConfiguration connectionConfiguration) {
 
@@ -43,7 +43,7 @@ public class EmailConnectionPool extends GenericObjectPool {
         if (connectionConfiguration.getMinEvictionTime() > 0) {
             this.setMinEvictableIdleTimeMillis(connectionConfiguration.getMinEvictionTime());
         }
-        if (connectionConfiguration.getMinEvictionTime() > 0) {
+        if (connectionConfiguration.getEvictionCheckInterval() > 0) {
             this.setTimeBetweenEvictionRunsMillis(connectionConfiguration.getEvictionCheckInterval());
         }
         if (connectionConfiguration.getExhaustedAction() != null) {

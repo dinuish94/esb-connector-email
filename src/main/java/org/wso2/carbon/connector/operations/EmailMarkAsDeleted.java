@@ -54,8 +54,8 @@ public class EmailMarkAsDeleted extends AbstractConnector {
             String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
-            boolean status = EmailOperationUtils.changeEmailState(connection, folder, emailID,
-                    new Flags(Flags.Flag.DELETED), false);
+            boolean status = EmailOperationUtils.changeEmailState(connection, folder, emailID,Flags.Flag.DELETED,
+                    false);
             ResponseHandler.generateOutput(messageContext, status);
         } catch (EmailConnectionException | EmailConnectionPoolException e) {
             ResponseHandler.setErrorsInMessage(messageContext, Error.CONNECTIVITY);

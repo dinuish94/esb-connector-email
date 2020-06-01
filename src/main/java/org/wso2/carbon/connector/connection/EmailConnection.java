@@ -7,12 +7,14 @@ import java.util.Properties;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 /**
  * Represents an email connection
  */
 public class EmailConnection {
+
+    private static final String COMMA_SEPARATOR = ",";
+    private static final String WHITESPACE_SEPARATOR = " ";
+    private static final String TRUE = String.valueOf(Boolean.TRUE);
 
     private Session session;
     private EmailProtocol protocol;
@@ -59,7 +61,7 @@ public class EmailConnection {
         props.setProperty(protocol.getPortProperty(), port);
         props.setProperty(protocol.getHostProperty(), host);
         props.setProperty(protocol.getTransportProtocolProperty(), protocol.getName());
-        props.setProperty(protocol.getMailAuthProperty(), "true");
+        props.setProperty(protocol.getMailAuthProperty(), TRUE);
         return props;
     }
 
@@ -72,11 +74,11 @@ public class EmailConnection {
     private Properties setSecureProperties(ConnectionConfiguration connectionConfiguration) {
 
         Properties props = new Properties();
-        props.setProperty(protocol.getStartTlsProperty(), "true");
+        props.setProperty(protocol.getStartTlsProperty(), TRUE);
         if (connectionConfiguration.isRequireTLS()) {
-            props.setProperty(protocol.getStartTlsProperty(), "true");
+            props.setProperty(protocol.getStartTlsProperty(), TRUE);
         } else {
-            props.setProperty(protocol.getSslEnableProperty(), "true");
+            props.setProperty(protocol.getSslEnableProperty(), TRUE);
             props.setProperty(protocol.getSocketFactoryFallbackProperty(),
                     EmailConstants.DEFAULT_SOCKETFACTORY_FALLBACK);
             props.setProperty(protocol.getSocketFactoryPortProperty(),
@@ -84,18 +86,18 @@ public class EmailConnection {
         }
 
         if (connectionConfiguration.getCipherSuites() != null) {
-            String[] cipherSuites = connectionConfiguration.getCipherSuites().split(",");
-            props.setProperty(protocol.getSslCiphersuitesProperty(), join(cipherSuites, " "));
+            props.setProperty(protocol.getSslCipherSuitesProperty(),
+                    replaceWithWhitespace(connectionConfiguration.getCipherSuites()));
         }
 
         if (connectionConfiguration.getSslProtocols() != null) {
-            String[] sslProtocols = connectionConfiguration.getSslProtocols().split(",");
-            props.setProperty(protocol.getSslProtocolsProperty(), join(sslProtocols, " "));
+            props.setProperty(protocol.getSslProtocolsProperty(),
+                    replaceWithWhitespace(connectionConfiguration.getSslProtocols()));
         }
 
         if (connectionConfiguration.getTrustedHosts() != null) {
-            String[] trustedHosts = connectionConfiguration.getTrustedHosts().split(",");
-            props.setProperty(protocol.getSslTrustProperty(), join(trustedHosts, " "));
+            props.setProperty(protocol.getSslTrustProperty(),
+                    replaceWithWhitespace(connectionConfiguration.getTrustedHosts()));
         }
 
         if (connectionConfiguration.isCheckServerIdentity()) {
@@ -106,6 +108,14 @@ public class EmailConnection {
         return props;
     }
 
+    /**
+     * Sets timeout properties
+     *
+     * @param readTimeout       Read Timeout
+     * @param writeTimeout      Write Timeout
+     * @param connectionTimeout Connection Timeout
+     * @return timeout properties
+     */
     private Properties setTimeouts(String readTimeout, String writeTimeout, String connectionTimeout) {
 
         Properties props = new Properties();
@@ -119,6 +129,17 @@ public class EmailConnection {
             props.setProperty(protocol.getConnectionTimeoutProperty(), connectionTimeout);
         }
         return props;
+    }
+
+    /**
+     * Replace a comma in a comma separated string with whitespace
+     *
+     * @param configString Comma separated string
+     * @return Whitespace separated string
+     */
+    private String replaceWithWhitespace(String configString) {
+
+        return configString.replace(COMMA_SEPARATOR, WHITESPACE_SEPARATOR).trim();
     }
 
 }

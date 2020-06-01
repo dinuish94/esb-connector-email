@@ -20,7 +20,7 @@ import static java.lang.String.format;
 /**
  * Generates responses
  */
-public class ResponseHandler {
+public final class ResponseHandler {
 
     private static final QName EMAILS_ELEMENT = new QName("emails");
     private static final QName EMAIL_ELEMENT = new QName("email");

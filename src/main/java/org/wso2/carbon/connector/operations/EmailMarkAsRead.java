@@ -51,8 +51,8 @@ public class EmailMarkAsRead extends AbstractConnector {
             String connectionName = ConfigurationUtils.getConnectionName(messageContext);
             pool = EmailConnectionManager.getEmailConnectionManager().getConnectionPool(connectionName);
             connection = (MailBoxConnection) pool.borrowObject();
-            boolean status = EmailOperationUtils.changeEmailState(connection, folder, emailID,
-                    new Flags(Flags.Flag.SEEN), false);
+            boolean status = EmailOperationUtils.changeEmailState(connection, folder, emailID, Flags.Flag.SEEN,
+                    false);
             ResponseHandler.generateOutput(messageContext, status);
         } catch (EmailConnectionException | EmailConnectionPoolException e) {
             ResponseHandler.setErrorsInMessage(messageContext, Error.CONNECTIVITY);

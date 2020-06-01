@@ -20,7 +20,7 @@ package org.wso2.carbon.connector.utils;
 /**
  * Contains the Java Mail API Properties
  */
-public class EmailConfigProperties {
+public final class EmailConfigProperties {
 
     public static final String PROPERTY_STORE_PROTOCOL = "mail.store.protocol";
     public static final String PROPERTY_HOST = "mail.%s.host";
@@ -42,4 +42,8 @@ public class EmailConfigProperties {
     public static final String PROPERTY_CONNECTION_TIMEOUT = "mail.%s.connectiontimeout";
     public static final String PROPERTY_WRITE_TIMEOUT = "mail.%s.writetimeout";
     public static final String PROPERTY_CHECK_SERVER_IDENTITY = "mail.%s.ssl.checkserveridentity";
+
+    private EmailConfigProperties() {
+
+    }
 }

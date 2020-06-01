@@ -20,11 +20,7 @@ package org.wso2.carbon.connector.utils;
 /**
  * Property names of the properties set containing email data
  */
-public class EmailPropertyNames {
-
-    private EmailPropertyNames() {
-
-    }
+public final class EmailPropertyNames {
 
     public static final String PROPERTY_EMAILS = "PROPERTY_EMAILS";
     public static final String PROPERTY_ATTACHMENT_TYPE = "ATTACHMENT_TYPE";
@@ -39,5 +35,9 @@ public class EmailPropertyNames {
     public static final String PROPERTY_EMAIL_BCC = "BCC";
     public static final String PROPERTY_EMAIL_REPLY_TO = "REPLY_TO";
     public static final String PROPERTY_ERROR_CODE = "ERROR_CODE";
-    public static final String PROPERTY_ERROR_MESSAGE = "ERROR_DETAIL";
+    public static final String PROPERTY_ERROR_MESSAGE = "ERROR_MESSAGE";
+
+    private EmailPropertyNames() {
+
+    }
 }

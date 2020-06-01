@@ -35,9 +35,9 @@ import javax.mail.internet.MimeMultipart;
 /**
  * Builds a new message
  */
-public class MessageBuilder {
+public final class MessageBuilder {
 
-    private static Log log = LogFactory.getLog(MessageBuilder.class);
+    private static final Log log = LogFactory.getLog(MessageBuilder.class);
 
     private final MimeMessage message;
 
@@ -167,7 +167,7 @@ public class MessageBuilder {
      * @param recipient     email address of the recipient
      * @param message       message to which the recipient should be added
      * @param recipientType whether the recipient is 'to', 'cc', 'bcc'
-     * @throws MessagingException
+     * @throws MessagingException if failed to set recipient
      */
     private void setRecipient(String recipient, Message message, Message.RecipientType recipientType)
             throws MessagingException {
