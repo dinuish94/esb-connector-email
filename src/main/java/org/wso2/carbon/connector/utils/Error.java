@@ -29,28 +29,28 @@ public enum Error {
     RESPONSE_GENERATION("700205", "EMAIL:RESPONSE_GENERATION"),
     INVALID_CREDENTIALS("700206", "EMAIL:INVALID_CREDENTIALS");
 
-    private final String errorCode;
-    private final String errorDetail;
+    private final String code;
+    private final String message;
 
     /**
      * Creates an Error Code instance.
      *
-     * @param errorCode the error code.
-     * @param errorCode the error detail.
+     * @param code the error code.
+     * @param message the error detail.
      */
-    Error(String errorCode, String errorDetail) {
+    Error(String code, String message) {
 
-        this.errorCode = errorCode;
-        this.errorDetail = errorDetail;
+        this.code = code;
+        this.message = message;
     }
 
     public String getErrorCode() {
 
-        return errorCode;
+        return code;
     }
 
     public String getErrorDetail() {
 
-        return errorDetail;
+        return message;
     }
 }

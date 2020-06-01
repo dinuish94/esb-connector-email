@@ -38,40 +38,40 @@ import static java.lang.String.format;
  */
 public final class EmailOperationUtils {
 
+    private static Log log = LogFactory.getLog(EmailOperationUtils.class);
+
     private EmailOperationUtils() {
 
     }
-
-    private static Log log = LogFactory.getLog(EmailOperationUtils.class);
 
     /**
      * Changes the email state by setting flags
      *
      * @param connection Mailbox connection to be used to connect to server
-     * @param folder     Mailbox name
+     * @param folderName Mailbox name
      * @param emailID    Email ID of the message of which the state is to be changed
      * @param flags      Flags to be set
      * @param expunge    whether to delete messages marked for deletion
      * @return true if the status update was successful, false otherwise
      * @throws EmailConnectionException thrown if failed to set the flags on the message
      */
-    public static boolean changeEmailState(MailBoxConnection connection, String folder, String emailID, Flags flags,
+    public static boolean changeEmailState(MailBoxConnection connection, String folderName, String emailID, Flags flags,
                                            boolean expunge) throws EmailConnectionException, EmailNotFoundException {
 
         boolean success = false;
-        if (StringUtils.isEmpty(folder)) {
-            folder = EmailConstants.DEFAULT_FOLDER;
+        if (StringUtils.isEmpty(folderName)) {
+            folderName = EmailConstants.DEFAULT_FOLDER;
         }
 
         try {
-            Folder inbox = connection.getFolder(folder, Folder.READ_WRITE);
+            Folder folder = connection.getFolder(folderName, Folder.READ_WRITE);
             SearchTerm searchTerm = new MessageIDTerm(emailID);
-            Message[] messages = inbox.search(searchTerm);
+            Message[] messages = folder.search(searchTerm);
 
             if (messages.length > 0) {
                 Message message = messages[0];
                 if (flags != null) {
-                    inbox.setFlags(new Message[]{message}, flags, true);
+                    folder.setFlags(new Message[]{message}, flags, true);
                     success = true;
                     if (log.isDebugEnabled()) {
                         log.debug(format("State updated for message with ID: %s...", emailID));

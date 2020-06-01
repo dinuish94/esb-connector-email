@@ -96,7 +96,7 @@ public class EmailList extends AbstractConnector {
     }
 
     /**
-     * Retrieve messages that matches given filtering criteria
+     * Retrieves messages that matches given filtering criteria
      *
      * @param connection           Mailbox connection to be used
      * @param mailboxConfiguration Mailbox Configurations
@@ -108,8 +108,9 @@ public class EmailList extends AbstractConnector {
             String folderName = mailboxConfiguration.getFolder();
 
             Folder mailbox;
+            boolean deleteAfterRetrieval = mailboxConfiguration.getDeleteAfterRetrieve();
 
-            if (mailboxConfiguration.getDeleteAfterRetrieve()) {
+            if (deleteAfterRetrieval) {
                 mailbox = connection.getFolder(folderName, Folder.READ_WRITE);
             } else {
                 mailbox = connection.getFolder(folderName, Folder.READ_ONLY);
@@ -119,11 +120,8 @@ public class EmailList extends AbstractConnector {
                 log.debug(format("Retrieving messages from Mail folder: %s ...", folderName));
             }
             Message[] messages = mailbox.search(getSearchTerm(mailboxConfiguration));
-
-            //TODO: Delete after retrieve
             List<EmailMessage> messageList = EmailParser.parseMessageList(getPaginatedMessages(messages,
-                    mailboxConfiguration.getOffset(),
-                    mailboxConfiguration.getLimit()));
+                    mailboxConfiguration.getOffset(), mailboxConfiguration.getLimit(), deleteAfterRetrieval));
             connection.closeFolder(false);
             return messageList;
         } catch (MessagingException e) {
@@ -132,14 +130,14 @@ public class EmailList extends AbstractConnector {
     }
 
     /**
-     * Retrieve paginated messages
+     * Retrieves paginated messages
      *
      * @param messages Messages to filter
      * @param offset   Record index to start filtering from
      * @param limit    Number of emails to be retrieved
      * @return List of paginated messages
      */
-    private List<Message> getPaginatedMessages(Message[] messages, int offset, int limit) {
+    private List<Message> getPaginatedMessages(Message[] messages, int offset, int limit, boolean deleteAfterRetrieval) {
 
         List<Message> messageList = Arrays.asList(messages);
         int toIndex = offset + limit;
@@ -152,6 +150,9 @@ public class EmailList extends AbstractConnector {
         if (messageList.size() >= offset) {
             messageList = messageList.subList(offset, toIndex);
         }
+        if (deleteAfterRetrieval) {
+            markMessagesAsDeleted(messages, offset, toIndex);
+        }
         if (log.isDebugEnabled()) {
             log.debug(format("Retrieved %d message(s)...", messageList.size()));
         }
@@ -159,7 +160,25 @@ public class EmailList extends AbstractConnector {
     }
 
     /**
-     * Build search term
+     * Marks emails within a range as deleted
+     *
+     * @param messages List of messages
+     * @param from     Start index
+     * @param to       End index
+     */
+    private void markMessagesAsDeleted(Message[] messages, int from, int to) {
+
+        for (int i = from; i < to; i++) {
+            try {
+                messages[i].setFlag(Flags.Flag.DELETED, true);
+            } catch (MessagingException e) {
+                log.error(format("Failed to mark message as deleted. %s", e.getMessage()), e);
+            }
+        }
+    }
+
+    /**
+     * Builds search term
      *
      * @param mailboxConfiguration Configured parameters containing the filters
      * @return {@link SearchTerm} containing all the filters

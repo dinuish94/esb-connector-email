@@ -29,10 +29,6 @@ public class EmailConnection {
             sessionProperties.putAll(setSecureProperties(connectionConfiguration));
         }
 
-//        if (properties != null) {
-//            sessionProperties.putAll(properties);
-//        }
-
         this.session = Session.getInstance(sessionProperties,
                 new javax.mail.Authenticator() {
                     @Override
@@ -42,6 +38,7 @@ public class EmailConnection {
                                 connectionConfiguration.getPassword());
                     }
                 });
+        this.session.setDebug(true);
     }
 
     public Session getSession() {

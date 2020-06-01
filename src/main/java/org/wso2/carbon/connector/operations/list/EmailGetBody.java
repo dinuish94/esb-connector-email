@@ -38,22 +38,23 @@ public class EmailGetBody extends AbstractConnector {
     public void connect(MessageContext messageContext) {
 
         String emailIndex = (String) getParameter(messageContext, EmailConstants.EMAIL_INDEX);
+        String errorString = "Error occurred while retrieving email body.";
         List<EmailMessage> emailMessages = (List<EmailMessage>) messageContext
                 .getProperty(EmailPropertyNames.PROPERTY_EMAILS);
 
         if (emailIndex != null && emailMessages != null) {
-            EmailMessage emailMessage = emailMessages.get(Integer.parseInt(emailIndex));
-            if (log.isDebugEnabled()) {
-                log.debug(format("Retrieving email body for email at index %s...", emailIndex));
+            EmailMessage emailMessage = getEmail(messageContext, emailMessages, emailIndex);
+            if (emailMessage != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(format("Retrieving email body for email at index %s...", emailIndex));
+                }
+                setProperties(messageContext, emailMessage);
             }
-            setProperties(messageContext, emailMessage);
         } else if (emailIndex == null) {
-            setInvalidConfigurationError(messageContext,
-                    "Failed to retrieve email body. Email Index is not set.");
+            setInvalidConfigurationError(messageContext, format("%s Email Index is not set.", errorString));
         } else {
-            setInvalidConfigurationError(messageContext,
-                    "Failed to retrieve email body. No emails retrieved. " +
-                            "Email list operation must be invoked first to retrieve emails.");
+            setInvalidConfigurationError(messageContext,format("%s No emails retrieved. " +
+                    "Email list operation must be invoked first to retrieve emails.", errorString));
         }
     }
 
@@ -77,6 +78,26 @@ public class EmailGetBody extends AbstractConnector {
     }
 
     /**
+     * Gets email of respective index from list
+     *
+     * @param messageContext Message Context
+     * @param emailMessages  List of Email Messages
+     * @param emailIndex     Index of the email to be retrieved
+     * @return Email message in the relevant index
+     */
+    private EmailMessage getEmail(MessageContext messageContext, List<EmailMessage> emailMessages, String emailIndex) {
+
+        EmailMessage message = null;
+        try {
+            message = emailMessages.get(Integer.parseInt(emailIndex));
+        } catch (IndexOutOfBoundsException e) {
+            setInvalidConfigurationError(messageContext,
+                    format("Failed to retrieve attachment. %s", e.getMessage()), e);
+        }
+        return message;
+    }
+
+    /**
      * Sets invalid configuration error
      *
      * @param messageContext Message Context
@@ -84,7 +105,18 @@ public class EmailGetBody extends AbstractConnector {
      */
     private void setInvalidConfigurationError(MessageContext messageContext, String errorString) {
 
+        setInvalidConfigurationError(messageContext, errorString, null);
+    }
+
+    /**
+     * Sets invalid configuration error
+     *
+     * @param messageContext Message Context
+     * @param errorString    Error description
+     */
+    private void setInvalidConfigurationError(MessageContext messageContext, String errorString, Exception e) {
+
         ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
-        handleException(errorString, messageContext);
+        handleException(errorString, e, messageContext);
     }
 }

@@ -102,24 +102,6 @@ public class MessageBuilder {
     public MessageBuilder fromAddresses(String fromAddresses) throws MessagingException {
 
         this.message.addFrom(InternetAddress.parse(fromAddresses));
-        // TODO: Check address count and call single address method
-        return this;
-    }
-
-    /**
-     * Adds a single from address to the message that is being built.
-     *
-     * @param from the from address of the email.
-     * @return MessageBuilder instance
-     * @throws MessagingException if failed to set single address
-     */
-    public MessageBuilder fromSingleAddresses(String from) throws MessagingException {
-
-        if (from != null) {
-            this.message.setFrom(new InternetAddress(from));
-        } else {
-            this.message.setFrom();
-        }
         return this;
     }
 
