@@ -50,9 +50,14 @@ public final class EmailParser {
     public static List<EmailMessage> parseMessageList(List<Message> messages) throws EmailParsingException {
 
         List<EmailMessage> messagesList = new ArrayList<>();
-//        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
-        for (Message message : messages) {
-            messagesList.add(parseMessage((MimeMessage) message));
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
+            for (Message message : messages) {
+                messagesList.add(parseMessage((MimeMessage) message));
+            }
+        } finally {
+            Thread.currentThread().setContextClassLoader(classLoader);
         }
         return messagesList;
     }

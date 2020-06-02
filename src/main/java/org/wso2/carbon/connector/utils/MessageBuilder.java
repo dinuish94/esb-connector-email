@@ -18,26 +18,34 @@
 package org.wso2.carbon.connector.utils;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.tika.Tika;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import javax.activation.DataHandler;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimePart;
+
+import static javax.mail.Part.ATTACHMENT;
+import static javax.mail.Part.INLINE;
 
 /**
  * Builds a new message
  */
 public final class MessageBuilder {
 
-    private static final Log log = LogFactory.getLog(MessageBuilder.class);
+    private static final String CONTENT_TYPE_HEADER = "Content-Type";
+    private static final String CONTENT_TRANSFER_ENCODING_HEADER = "Content-Transfer-Encoding";
+    private static final String MULTIPART_TYPE = "multipart/*";
 
     private final MimeMessage message;
 
@@ -193,15 +201,14 @@ public final class MessageBuilder {
                                    String contentTransferEncoding) {
 
         this.contentType = StringUtils.isEmpty(contentType) ? EmailConstants.DEFAULT_CONTENT_TYPE : contentType;
-        if (!StringUtils.isEmpty(encoding)) {
-            this.contentType = contentType + "; charset=" + encoding;
-        }
-        if (!StringUtils.isEmpty(encoding)) {
+        this.contentType = StringUtils.isEmpty(encoding)
+                ? this.contentType + "; charset=" + EmailConstants.DEFAULT_ENCODING
+                : this.contentType + "; charset=" + encoding;
+        if (!StringUtils.isEmpty(content)) {
             this.content = content;
         }
-        if (!StringUtils.isEmpty(contentTransferEncoding)) {
-            this.contentTransferEncoding = contentTransferEncoding;
-        }
+        this.contentTransferEncoding = StringUtils.isEmpty(contentTransferEncoding)
+                ? EmailConstants.DEFAULT_CONTENT_TRANSFER_ENCODING : contentTransferEncoding;
         return this;
     }
 
@@ -225,42 +232,64 @@ public final class MessageBuilder {
      * @return MIME Message with the configured values
      * @throws MessagingException if failed to build message
      */
-    public MimeMessage build() throws MessagingException {
+    public MimeMessage build() throws MessagingException, IOException {
 
-        MimeBodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setContent(content, contentType);
-
-        Multipart multipart = new MimeMultipart();
-        multipart.addBodyPart(messageBodyPart);
-
-        if (attachments != null) {
-            addAttachments(attachments, multipart);
-        }
-        message.setContent(multipart);
-        if (contentTransferEncoding != null) {
-            message.setHeader(EmailConstants.CONTENT_TRANSFER_ENCODING_HEADER, contentTransferEncoding);
+        if (attachments != null && !attachments.isEmpty()) {
+            MimeMultipart multipart = new MimeMultipart();
+            MimeBodyPart body = new MimeBodyPart();
+            setMessageContent(body);
+            multipart.addBodyPart(body);
+            String[] attachFiles = attachments.split(",");
+            for (String filePath : attachFiles) {
+                addAttachment(multipart, filePath);
+            }
+            message.setContent(multipart, MULTIPART_TYPE);
+        } else {
+            setMessageContent(message);
         }
         return message;
     }
 
     /**
-     * Add attachments to the message
+     * Sets message content in message body
      *
-     * @param attachments Attachments to be added
-     * @param multipart   Multipart Object the attachment should be added to
-     * @throws MessagingException if failed to add the attachments
+     * @param part MimePart the content should be set to
+     * @throws MessagingException if an error occurs while setting the content
      */
-    private void addAttachments(String attachments, Multipart multipart) throws MessagingException {
+    private void setMessageContent(MimePart part) throws MessagingException {
 
-        String[] attachFiles = attachments.split(",");
-        for (String filePath : attachFiles) {
-            MimeBodyPart attachPart = new MimeBodyPart();
-            try {
-                attachPart.attachFile(filePath);
-            } catch (IOException e) {
-                log.error("Error occurred while attaching files. " + e.getMessage(), e);
-            }
-            multipart.addBodyPart(attachPart);
+        part.setDisposition(INLINE);
+        part.setContent(content, contentType);
+        part.setHeader(CONTENT_TYPE_HEADER, contentType);
+        if (!StringUtils.isEmpty(contentTransferEncoding)) {
+            part.setHeader(CONTENT_TRANSFER_ENCODING_HEADER, contentTransferEncoding);
         }
     }
+
+    /**
+     * Add attachment to message
+     *
+     * @param multipart Multi part body the messages should be added to
+     * @param filePath  File path of the attachment
+     * @throws MessagingException if failed to set attachments
+     * @throws IOException        if an error occurred while reading attachment content
+     */
+    private void addAttachment(MimeMultipart multipart, String filePath) throws MessagingException, IOException {
+
+        MimeBodyPart part = new MimeBodyPart();
+        File file = new File(filePath);
+        try (InputStream fin = new FileInputStream(file)) {
+            part.setDisposition(ATTACHMENT);
+            part.setFileName(file.getName());
+            Tika tika = new Tika();
+            String fileContentType = tika.detect(file);
+            DataHandler dataHandler = new DataHandler(new EmailAttachmentDataSource(file.getName(), fin,
+                    fileContentType));
+            part.setDataHandler(dataHandler);
+            part.setHeader(CONTENT_TYPE_HEADER, dataHandler.getContentType());
+            part.setHeader(CONTENT_TRANSFER_ENCODING_HEADER, this.contentTransferEncoding);
+            multipart.addBodyPart(part);
+        }
+    }
+
 }

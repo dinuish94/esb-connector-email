@@ -72,6 +72,8 @@ public final class EmailConstants {
     public static final String CONTENT_TRANSFER_ENCODING_HEADER = "Content-Transfer-Encoding";
     // Default configuration values
     public static final String DEFAULT_CONTENT_TYPE = "text/html";
+    public static final String DEFAULT_ENCODING = "UTF-8";
+    public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "Base64";
     public static final String DEFAULT_SOCKETFACTORY_CLASS = "javax.net.ssl.SSLSocketFactory";
     public static final String DEFAULT_SOCKETFACTORY_FALLBACK = "false";
     public static final String DEFAULT_FOLDER = "INBOX";

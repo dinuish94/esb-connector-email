@@ -40,7 +40,6 @@ public class EmailConnection {
                                 connectionConfiguration.getPassword());
                     }
                 });
-        this.session.setDebug(true);
     }
 
     public Session getSession() {

@@ -65,7 +65,6 @@ public class EmailList extends AbstractConnector {
     public void connect(MessageContext messageContext) {
 
         String errorString = "Error occurred while retrieving messages from folder: %s. %s";
-//        Thread.currentThread().setContextClassLoader(javax.mail.Message.class.getClassLoader());
         EmailConnectionPool pool = null;
         MailBoxConnection connection = null;
         String folderName = StringUtils.EMPTY;
@@ -109,13 +108,11 @@ public class EmailList extends AbstractConnector {
 
             Folder mailbox;
             boolean deleteAfterRetrieval = mailboxConfiguration.getDeleteAfterRetrieve();
-
             if (deleteAfterRetrieval) {
                 mailbox = connection.getFolder(folderName, Folder.READ_WRITE);
             } else {
                 mailbox = connection.getFolder(folderName, Folder.READ_ONLY);
             }
-
             if (log.isDebugEnabled()) {
                 log.debug(format("Retrieving messages from Mail folder: %s ...", folderName));
             }
@@ -167,8 +164,9 @@ public class EmailList extends AbstractConnector {
      * @param to       End index
      */
     private void markMessagesAsDeleted(Message[] messages, int from, int to) {
+
         if (log.isDebugEnabled()) {
-            log.debug(format("Marking messages from %d to %d as deleted...",from, to));
+            log.debug(format("Marking messages from %d to %d as deleted...", from, to));
         }
         for (int i = from; i < to; i++) {
             try {

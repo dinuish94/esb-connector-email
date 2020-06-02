@@ -204,6 +204,11 @@
             <artifactId>commons-email</artifactId>
             <version>1.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.18</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -342,6 +347,14 @@
                                     <groupId>com.sun.mail</groupId>
                                     <artifactId>jakarta.mail</artifactId>
                                     <version>1.6.4</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>target/connector/dependencies</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.tika</groupId>
+                                    <artifactId>tika-core</artifactId>
+                                    <version>1.18</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>target/connector/dependencies</outputDirectory>

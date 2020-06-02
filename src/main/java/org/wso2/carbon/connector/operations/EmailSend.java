@@ -31,6 +31,7 @@ import org.wso2.carbon.connector.utils.Error;
 import org.wso2.carbon.connector.utils.MessageBuilder;
 import org.wso2.carbon.connector.utils.ResponseHandler;
 
+import java.io.IOException;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
@@ -45,7 +46,6 @@ public class EmailSend extends AbstractConnector {
     @Override
     public void connect(MessageContext messageContext) {
 
-        String errorString = "Error occurred while sending the email. %s";
         try {
             String name = ConfigurationUtils.getConnectionName(messageContext);
             EmailConnection connection = EmailConnectionManager.getEmailConnectionManager().getConnection(name);
@@ -53,13 +53,13 @@ public class EmailSend extends AbstractConnector {
             ResponseHandler.generateOutput(messageContext, true);
         } catch (EmailConnectionException e) {
             ResponseHandler.setErrorsInMessage(messageContext, Error.CONNECTIVITY);
-            handleException(format(errorString, e.getMessage()), e, messageContext);
+            handleException(e.getMessage(), e, messageContext);
         } catch (InvalidConfigurationException e) {
             ResponseHandler.setErrorsInMessage(messageContext, Error.INVALID_CONFIGURATION);
-            handleException(format(errorString, e.getMessage()), e, messageContext);
+            handleException(e.getMessage(), e, messageContext);
         } catch (ContentBuilderException e) {
             ResponseHandler.setErrorsInMessage(messageContext, Error.RESPONSE_GENERATION);
-            handleException(format(errorString, e.getMessage()), e, messageContext);
+            handleException(e.getMessage(), e, messageContext);
         }
     }
 
@@ -106,6 +106,9 @@ public class EmailSend extends AbstractConnector {
             } catch (MessagingException e) {
                 throw new EmailConnectionException(format("Error occurred while sending the email. %s", e.getMessage()),
                         e);
+            } catch (IOException e) {
+                throw new EmailConnectionException(format("Error occurred while adding attachments to the email. %s"
+                        , e.getMessage()), e);
             }
         }
     }

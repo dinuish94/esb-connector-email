@@ -42,6 +42,8 @@ import static java.lang.String.format;
  */
 public final class EmailOperationUtils {
 
+    private static final String DELETED = "DELETED";
+    private static final String SEEN = "SEEN";
     private static final Log log = LogFactory.getLog(EmailOperationUtils.class);
 
     private EmailOperationUtils() {
@@ -76,11 +78,10 @@ public final class EmailOperationUtils {
             if (messages.length > 0) {
                 Message message = messages[0];
                 if (flag != null) {
-//                    folder.setFlags(new Message[]{message}, flags, true);
                     message.setFlag(flag, true);
                     success = true;
                     if (log.isDebugEnabled()) {
-                        log.debug(format("State updated for message with ID: %s...", emailID));
+                        log.debug(format("%s flag updated for message with ID: %s...", getFlagName(flag), emailID));
                     }
                 }
             } else {
@@ -93,6 +94,24 @@ public final class EmailOperationUtils {
                     e.getMessage()), e);
         }
         return success;
+    }
+
+    /**
+     * Retrieve flag name by mask
+     *
+     * @param flag Flag
+     * @return Flag Name
+     */
+    private static String getFlagName(Flags.Flag flag) {
+
+        String flagName = "";
+        if (flag == Flags.Flag.DELETED) {
+            flagName = DELETED;
+        }
+        if (flag == Flags.Flag.SEEN) {
+            flagName = SEEN;
+        }
+        return flagName;
     }
 
     /**
